@@ -1,0 +1,372 @@
+<template>
+  <div>
+    <v-container fluid>
+      <v-card color="yellow lighten-2">
+        <!-- 
+            <input
+              type="file"
+              ref="files"
+              id="files"
+              class="inputfile"
+              v-on:change="handleUpload()"
+            />
+            <textarea v-model="text"></textarea>
+ -->
+
+        <v-btn color="primary">
+          <input
+            type="file"
+            class="inputfile"
+            id="file"
+  a          ref="myFile"
+            @change="selectedFile"
+          /><br />
+          <label for="file" width="20" height="17">
+            Upload File from Club Express
+          </label>
+        </v-btn>
+      </v-card>
+      <v-divider class="mx-4" inset vertical></v-divider>
+      <v-spacer></v-spacer>
+      <v-row>
+        <v-col> <h2>Ride Leader Info</h2> </v-col>
+      </v-row>
+      <v-data-table
+        :headers="headers"
+        :items="Info"
+        :items-per-page="100"
+        sort-by="Last"
+        class="elevation-1"
+      >
+        <template v-slot:top>
+          <v-toolbar flat>
+            <v-btn color="primary" dark class="mb-2" @click="saveCSVToServer()">
+              Save Ride Leader Changes
+            </v-btn>
+            <v-divider class="mx-4" inset vertical></v-divider>
+            <v-spacer></v-spacer>
+            <v-dialog v-model="dialog" max-width="500px">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  color="primary"
+                  dark
+                  class="mb-2"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  New Item
+                </v-btn>
+              </template>
+              <v-card>
+                <v-card-title>
+                  <span class="headline">{{ formTitle }}</span>
+                </v-card-title>
+
+                <v-card-text>
+                  <v-container>
+                    <v-row>
+                      <v-col cols="12" sm="6" md="4">
+                        <v-text-field
+                          v-model="editedItem.First"
+                          label="First Name"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="4">
+                        <v-text-field
+                          v-model="editedItem.Last"
+                          label="Last Name"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="4">
+                        <v-text-field
+                          v-model="editedItem.Cell"
+                          label="Cell Phone"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="4">
+                        <v-text-field
+                          v-model="editedItem.Phone"
+                          label="Phone (Other)"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="4">
+                        <v-text-field
+                          v-model="editedItem.email"
+                          label="Email Address"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                  </v-container>
+                </v-card-text>
+
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="blue darken-1" text @click="close">
+                    Cancel
+                  </v-btn>
+                  <v-btn color="blue darken-1" text @click="save"> Save </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+            <v-dialog v-model="dialogDelete" max-width="500px">
+              <v-card>
+                <v-card-title class="headline"
+                  >Are you sure you want to delete this item?</v-card-title
+                >
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="blue darken-1" text @click="closeDelete"
+                    >Cancel</v-btn
+                  >
+                  <v-btn color="blue darken-1" text @click="deleteItemConfirm"
+                    >OK</v-btn
+                  >
+                  <v-spacer></v-spacer>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+          </v-toolbar>
+        </template>
+
+        <template v-slot:item.actions="{ item }">
+          <v-icon small class="mr-2" @click="editItem(item)">
+            mdi-pencil
+          </v-icon>
+          <v-icon small @click="deleteItem(item)"> mdi-delete </v-icon>
+        </template>
+
+        <template v-slot:no-data>
+          <v-btn color="primary" @click="initialize"> Reset </v-btn>
+        </template>
+      </v-data-table>
+    </v-container>
+  </div>
+</template>
+
+<script>
+import axios from "axios";
+import EventBus from "@/event-bus";
+
+export default {
+  data: () => ({
+    file: "",
+    text: "",
+    dialog: false,
+    dialogDelete: false,
+    status: "",
+    headers: [
+      {
+        text: "First Name",
+        align: "start",
+        value: "First",
+      },
+      { text: "Last Name", value: "Last" },
+      { text: "Phone", value: "Phone" },
+      { text: "Cell", value: "Cell" },
+      { text: "Email ", value: "email" },
+      { text: "Actions", value: "actions", sortable: false },
+    ],
+    Info: [],
+    editedIndex: -1,
+    editedItem: {
+      First: "",
+      Last: "",
+      Phone: "",
+      Cell: "",
+      email: "",
+    },
+    defaultItem: {
+      First: "",
+      Last: "",
+      Phone: "",
+      Cell: "",
+      email: "",
+    },
+  }),
+
+  computed: {
+    formTitle() {
+      return this.editedIndex === -1 ? "New Item" : "Edit Item";
+    },
+  },
+
+  watch: {
+    dialog(val) {
+      val || this.close();
+    },
+    dialogDelete(val) {
+      val || this.closeDelete();
+    },
+  },
+
+  created() {
+    this.initialize();
+  },
+
+  methods: {
+    //var csv is the CSV file with headers
+
+    processData(csv) {
+      var lines = csv.split("\n");
+
+      var result = [];
+
+      var headers = lines[0].split(",");
+
+      for (var i = 1; i < lines.length; i++) {
+        var obj = {};
+        var currentline = lines[i].split(",");
+
+        for (var j = 0; j < headers.length; j++) {
+          obj[headers[j]] = currentline[j];
+        }
+
+        result.push(obj);
+      }
+
+      //return result; //JavaScript object
+      //     this.headers = obj[headers];
+      this.Info = result; //JSON
+    },
+
+    selectedFile() {
+      let file = this.$refs.myFile.files[0];
+      // if(!file || file.type !== 'text/plain') return;
+
+      // Credit: https://stackoverflow.com/a/754398/52160
+      let reader = new FileReader();
+      reader.readAsText(file, "UTF-8");
+      reader.onload = (evt) => {
+        this.text = evt.target.result;
+        this.parseCSVSToObj(this.text);
+      };
+      reader.onerror = (evt) => {
+        console.error(evt);
+      };
+    },
+    //
+    // row delimiter is $ to avoid windows/unix newline issues
+    //
+    parseObjToCSVArray(d) {
+      const items = d;
+      const replacer = (key, value) => (value === null ? "" : value); // specify how you want to handle null values here
+      const header = Object.keys(items[0]);
+      const csv = [
+        header.join(","), // header row first
+        ...items.map((row) =>
+          header
+            .map((fieldName) => JSON.stringify(row[fieldName], replacer))
+            .join(",")
+        ),
+      ].join("$");
+      return csv;
+    },
+
+    saveCSVToServer() {
+      var csv = this.parseObjToCSVArray(this.Info);
+      var url =
+        this.$pythonServer + "putRideLeaderInfo?msg=" + JSON.stringify(csv);
+      axios({
+        method: "GET",
+        url: url,
+      })
+        .then((response) => {
+          this.status = response.data;
+          EventBus.$emit("wait", "false");
+        })
+        .catch((error) => {
+          EventBus.$emit("wait", "false");
+          alert("Ride Leader Info " + error);
+        });
+    },
+    initialize() {
+      EventBus.$on("uploadFile", (payload) => {
+        this.handleUpload(payload);
+      });
+      EventBus.$emit("wait", "true");
+
+      //
+      // get CSV data
+      var url = this.$pythonServer + "getRideLeaderInfo";
+      axios({
+        method: "GET",
+        url: url,
+      })
+        .then((response) => {
+          this.Info = response.data;
+          EventBus.$emit("wait", "false");
+        })
+        .catch((error) => {
+          EventBus.$emit("wait", "false");
+          alert("Ride Leader Info Error" + error);
+        });
+    },
+    editItem(item) {
+      this.editedIndex = this.Info.indexOf(item);
+      this.editedItem = Object.assign({}, item);
+      this.dialog = true;
+    },
+
+    deleteItem(item) {
+      this.editedIndex = this.Info.indexOf(item);
+      this.editedItem = Object.assign({}, item);
+      this.dialogDelete = true;
+    },
+
+    deleteItemConfirm() {
+      this.Info.splice(this.editedIndex, 1);
+      this.closeDelete();
+    },
+
+    close() {
+      this.dialog = false;
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
+    },
+
+    closeDelete() {
+      this.dialogDelete = false;
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
+    },
+
+    save() {
+      if (this.editedIndex > -1) {
+        Object.assign(this.Info[this.editedIndex], this.editedItem);
+      } else {
+        this.Info.push(this.editedItem);
+      }
+      this.close();
+    },
+  },
+};
+</script>
+
+<style>
+.inputfile {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+.inputfile + label {
+  font-size: 1em;
+  font-weight: 400;
+  color: white;
+  background-color: transparent;
+  display: inline-block;
+  margin: 0.2em;
+}
+
+.v-menu {
+  background-color: violet;
+  color: black;
+}
+</style>

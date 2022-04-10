@@ -1,0 +1,2 @@
+devtool: 'inline-source-map',
+

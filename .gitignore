@@ -21,3 +21,13 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+src/components/OLD/HelloWorld.vue
+src/components/OLD/PopUp.vue
+src/components/OLD/Protected.vue-
+src/components/OLD/RidesTable-.vue
+src/components/OLD/storage-helper.js
+src/components/RidesTable.vue-
+rides.zip
+src/views/OLD/Home.vue
+src/views/OLD/HomeView.vue
+ridesLast.zip
