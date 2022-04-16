@@ -39,13 +39,12 @@
         >
           <!--         <v-on:wait="setWait($event)"
  -->
+
           <v-list>
             <v-list-item to="/"> Ride Leader Status </v-list-item>
             <v-list-item to="/List"> Ride List </v-list-item>
             <v-list-item to="/Browser"> Image Browser </v-list-item>
-            <v-list-item
-              to="/msgEditor/pendingRides.msg/Pending Rides Message/"
-            >
+            <v-list-item to="msgEditor/pendingRides.msg/Pending Rides Message/">
               Edit Email Reports
             </v-list-item>
             <v-list-item to="/newYearReset"> New Year Reset </v-list-item>

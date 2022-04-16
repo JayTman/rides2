@@ -1,6 +1,6 @@
 // vue.config.js
 module.exports = {
-    configureWebpack: {
-        devtool: "source-map"
-    }
+  configureWebpack: {
+    devtool: "source-map",
+  },
 };

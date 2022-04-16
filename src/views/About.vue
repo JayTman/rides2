@@ -13,10 +13,14 @@
               <v-row justify="space-around">
                 NODE_ENV: {{ this.$node_env }}
               </v-row>
+              <v-row justify="space-around"> Hostname: {{ hostName }} </v-row>
               <v-row justify="space-around">
                 python server: {{ this.$pythonServer }}
               </v-row>
-              <v-row justify="space-around"> server: {{ this.$addr }} </v-row>
+              <v-row justify="space-around">
+                server: {{ this.$addr }} foo {{ this.$config.py }}
+              </v-row>
+
               <v-row justify="space-around">
                 Active Calendar:
                 {{ this.$calendar }}
@@ -55,8 +59,10 @@ export default {
   data() {
     return {
       dialog: true,
+      hostName: "",
+      pythonServer: "notset",
       snackbar: false,
-      restoreCalendar: "0401test.jsn",
+      restoreCalendar: "forTesting.jsn",
       text: "Hang On, this will take a couple of minutes",
     };
   },
@@ -70,7 +76,7 @@ export default {
       EventBus.$emit("wait", "true");
       var url =
         this.$pythonServer +
-        "/reloadTestCalendar?cal=" +
+        "reloadTestCalendar?cal=" +
         this.$calendar +
         "&msg=" +
         this.restoreCalendar;
@@ -82,6 +88,7 @@ export default {
           this.msg = resp.data;
           EventBus.$emit("wait", "false");
           this.snackbar = false;
+          this.updateResetFlag("WRITE", "2020 Reset by Reload of test data");
           this.$router.push({ path: "/NewYearReset" });
 
           // alert(this.response);
@@ -91,8 +98,33 @@ export default {
           EventBus.$emit("wait", "false");
         });
     },
+    updateResetFlag(mode, newYearDate) {
+      var url =
+        this.$pythonServer +
+        "/newYearCheck?filename=newYearCheck.msg&id=" +
+        mode +
+        "&msg=" +
+        newYearDate;
+      axios({
+        method: "GET",
+        url: url,
+        //      url: this.$pythonServer +
+        // url: "https://test.ebcrides.org/" + "getImageList",
+      })
+        // axios({ method: "GET", "url": "https://httpbin.org/ip" }).
+        .then((response) => {
+          console.log("dateeeee " + response.data);
+          this.prevResetDate = response.data;
+          if (this.prevResetDate.substr(0, 4) === this.currentYear.toString()) {
+            this.snackbarColor = "red lighten-3 black--text";
+          }
+        });
+    },
   },
-  mounted() {},
+  mounted() {
+    this.hostName = location.host;
+    this.pythonServer = this.$confi.py;
+  },
 };
 </script>
 <style scoped></style>

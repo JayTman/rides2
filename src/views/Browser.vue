@@ -131,9 +131,7 @@
                 ></v-card>
               </v-layout>
               <v-card-text>
-                <b> {{ item.title.substr(0, 25) }} </b>
-                <br />
-                {{ item.width }}x{{ item.height }}
+                {{ item.title.substr(0, 25) }}
               </v-card-text>
             </v-card>
           </v-col>
@@ -173,6 +171,10 @@ export default {
     };
   },
   methods: {
+    tttt(x, y) {
+      alert("one" + x);
+      alert(y);
+    },
     findIndexByKeyValue(_array, key, value) {
       for (var i = 0; i < _array.length; i++) {
         if (_array[i][key] === value) {
@@ -305,7 +307,7 @@ export default {
     },
     getPictures(imageList) {
       EventBus.$emit("wait", "true");
-      var url = this.$pythonServer + "getPictures?id=" + this.$imageDir;
+      var url = this.$pythonServer + "/getPictures?id=" + this.$imageDir;
       axios({
         method: "GET",
         url: url,

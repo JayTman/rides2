@@ -4,6 +4,7 @@
       <v-col align="center">
         <h3 class="display-1 font-weight-bold mb-3">Email Report Editor</h3>
       </v-col>
+      {{ this.$pythonServer }}
       <v-tabs
         background-color="brown"
         color="yellow"
@@ -36,23 +37,53 @@
             @RideButton &emsp;  will be replaced with an action button
             for the report being run. <br />
             @RideYear &emsp;  will be replaced with current year for  the Calendar.
+            @CalendarButton &emsp;  will be replaced with a button to show only the ride leaders rides in the Rides & Events Calendar.
              <br /> 
             <br />
             Some text formatting commands will work on these variables (size,color, font,
             etc.), and some won't."
       >
-        <slot> Report Variables </slot>
+        <slot><b> Report Variables</b> </slot>
       </Tip>
       <!--           <v-btn value="save" color="primary" @click="saveMsg('save')">
             Save
           </v-btn>
  -->
       <v-card :color="this.$bgColor">
-        <v-container :class="this.$bgColor">
+        <v-container fluid :class="this.$bgColor" class="text-center">
           <h3>
             {{ $route.params.title }}
           </h3>
-          <!-- 
+          <v-row>
+            <v-col cols="1">
+              <Tip
+                text="This will send a message with the current version of this report to your email address. <br /> This will show you what the report would actually look like and save it."
+              >
+                <slot>
+                  <v-btn value="test" color="primary" @click="saveMsg('test')">
+                    Test
+                  </v-btn>
+                </slot>
+              </Tip>
+              <Tip
+                text="Saves current version and determines what the Revert Buttton restores to. "
+              >
+                <slot>
+                  <v-btn @click="saveMsg('install')" color="green white--text">
+                    Save
+                  </v-btn>
+                </slot></Tip
+              >
+              <Tip text="Go back to the last saved</br>version of this message">
+                <slot>
+                  <v-btn @click="saveMsg('revert')" color="red white--text">
+                    Revert
+                  </v-btn>
+                </slot>
+              </Tip>
+            </v-col>
+            <v-col>
+              <!-- 
         This is tinymce
         APIkey: uc46vz0xq4tugh14zeq8f2f8pap1dqrb2p7l5azjmluczknf
         Website: https://www.tiny.cloud/
@@ -61,35 +92,36 @@
         registered domains: ebcrides.org, localhost
        -->
 
-          <div style="display: none">{{ (inp = content) }}</div>
+              <div style="display: none">{{ (inp = content) }}</div>
 
-          <div id="inp">
-            <editor
-              v-model="inp"
-              api-key="uc46vz0xq4tugh14zeq8f2f8pap1dqrb2p7l5azjmluczknf"
-              :init="{
-                body_class: 'Editor',
-                backcolor: 'red',
-                oninit: getMsgFile(this.$route.params.filename),
-                plugins:
-                  ' paste importcss searchreplace autolink  directionality code  charmap image link media   table charmap hr  anchor  advlist lists    quickbars emoticons',
-                menubar: ' edit  insert format tools table',
-                toolbar:
-                  'undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor removeformat | pagebreak | charmap emoticons | insertfile image media template link anchor  | ltr rtl',
-                importcss_append: true,
-                height: 600,
-                image_caption: true,
-                toolbar_mode: 'sliding',
-                contextmenu: 'image',
-                body_class: 'my_class',
-              }"
-            >
-            </editor>
-          </div>
-          <!--           <v-btn value="save" color="primary" @click="saveMsg('save')">
+              <div id="inp">
+                <editor
+                  v-model="inp"
+                  api-key="uc46vz0xq4tugh14zeq8f2f8pap1dqrb2p7l5azjmluczknf"
+                  :init="{
+                    body_class: 'Editor',
+                    backcolor: 'red',
+                    oninit: getMsgFile(this.$route.params.filename),
+                    plugins:
+                      ' paste importcss searchreplace autolink  directionality code  charmap image link media   table charmap hr  anchor  advlist lists    quickbars emoticons',
+                    menubar: ' edit  insert format tools table',
+                    toolbar:
+                      'undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor removeformat | pagebreak | charmap emoticons | insertfile image media template link anchor  | ltr rtl',
+                    importcss_append: true,
+                    height: 600,
+                    image_caption: true,
+                    toolbar_mode: 'sliding',
+                    contextmenu: 'image',
+                    body_class: 'my_class',
+                  }"
+                >
+                </editor>
+              </div>
+              <!--           <v-btn value="save" color="primary" @click="saveMsg('save')">
             Save
           </v-btn>
  -->
+              <!-- 
           <v-layout row>
             <v-col cols="3">
               <Tip
@@ -121,6 +153,9 @@
               </Tip>
             </v-col>
           </v-layout>
+  -->
+            </v-col>
+          </v-row>
         </v-container>
       </v-card>
     </v-card>
@@ -156,6 +191,7 @@ export default {
       var url = this.$pythonServer + "getfile?msg=" + filename;
       axios({
         method: "GET",
+
         headers: {
           "Content-type": "application/json; charset=UTF-8",
         },
@@ -168,8 +204,8 @@ export default {
           EventBus.$emit("wait", "false");
         })
         .catch((error) => {
-          alert(error);
-          EventBus.$efmit("wait", "false");
+          alert("Error getting Message File", error);
+          EventBus.$emit("wait", "false");
         });
     },
     saveMsg(action) {

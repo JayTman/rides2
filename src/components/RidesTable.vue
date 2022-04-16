@@ -26,7 +26,7 @@
       dense
       :height="windowSize.y"
       single-expand
-      :fixed-header="hideHeader"
+      :fixed-header="hideHeader === 'nohide' ? true : false"
       :class="this.$fgColor"
       :headers="headers"
       :items="ridesList"
@@ -137,7 +137,10 @@ export default {
 
     async init() {
       EventBus.$emit("wait", "true");
-      await this.getRides("all", "pending").then(() => {});
+      var ret = await this.getRides("all", "pending").then(() => {});
+      if (ret === 0) {
+        return;
+      }
       this.headers.push({
         text: this.statusFieldName,
         value: this.statusFieldName,

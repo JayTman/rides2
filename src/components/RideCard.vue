@@ -6,13 +6,15 @@
       <v-card color="grey">
         <!--       <span class="foo" align="center" justify="center">
  -->
-        <v-card-text class="text-h6 white--text">
+        <v-card-text class="text-h5 white--text">
+          {{ item.who }}
+          <br />
           {{ item.Date }}
           <br />
           {{ item.title }}
           <br />
         </v-card-text>
-        <v-card-text>
+        <v-card-text class="text-h6">
           <div v-if="'custom' in item">
             <div
               v-for="(val, propertyName, index) in item.displayCustom"
@@ -21,9 +23,9 @@
               <div
                 :class="
                   fuzzyMatch(val, 'change')
-                    ? 'white--text'
+                    ? 'text-h6 pink--text lighten-6'
                     : fuzzyMatch(val, 'confirm')
-                    ? 'white--text'
+                    ? 'text-h6 white--text'
                     : 'yellow lighten-2 black--text'
                 "
                 v-if="isStatus(propertyName) === true"
@@ -31,7 +33,9 @@
                 {{ propertyName }}
                 : {{ val }}
               </div>
-              <div v-else>{{ propertyName }} {{ val }}</div>
+              <div v-else>
+                <b>{{ propertyName }} {{ val }} </b>
+              </div>
             </div>
           </div>
         </v-card-text>

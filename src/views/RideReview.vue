@@ -1,85 +1,86 @@
 <template>
   <v-container fluid :class="this.$bgColor">
     <v-row>
-      <v-layout align-start wrap col justify-space-between>
-        <!--         bg: 
+      <!--       <v-layout align-start wrap col justify-space-around>
+ -->
+      <!--         bg: 
         fg: "#57647f",
         header: "#576490",
  -->
-        <v-card
-          v-for="item in rideList"
-          :key="item.id"
-          dark
-          class="card"
-          :color="
-            checkConfirm(item.custom, 'change')
-              ? changeColor
-              : checkConfirm(item.custom, 'confirm')
-              ? confirmColor
-              : pendColor
-          "
-          width="300"
-          elevation="5"
-        >
-          <v-card :color="cardColors.bg">
-            <v-col>
-              <v-row justify="space-around">
-                <v-btn
-                  v-model="item.custom"
-                  :color="confirmColor"
-                  small
-                  @click="setStatus('confirm', item)"
-                  :disabled="checkConfirm(item.custom, 'confirm')"
-                >
-                  Confirm Ride
-                </v-btn>
-                <v-btn
-                  class="button"
-                  :color="changeColor"
-                  small
-                  @click="setStatus('change', item)"
-                  :disabled="checkConfirm(item.custom, 'change')"
-                >
-                  <!-- 
+      <v-card
+        v-for="item in rideList"
+        :key="item.id"
+        dark
+        class="card"
+        :color="
+          checkConfirm(item.custom, 'change')
+            ? changeColor
+            : checkConfirm(item.custom, 'confirm')
+            ? confirmColor
+            : pendColor
+        "
+        width="300"
+        elevation="5"
+      >
+        <v-card :color="cardColors.bg">
+          <v-col>
+            <v-row justify="space-around">
+              <v-btn
+                v-model="item.custom"
+                :color="confirmColor"
+                light
+                @click="setStatus('confirm', item)"
+                :disabled="checkConfirm(item.custom, 'confirm')"
+              >
+                Confirm Ride
+              </v-btn>
+              <v-btn
+                class="button"
+                :color="changeColor"
+                @click="setStatus('change', item)"
+                :disabled="checkConfirm(item.custom, 'change')"
+              >
+                <!-- 
                   color="#743b44"
  -->
-                  Change Ride
+                Change Ride
+              </v-btn>
+            </v-row>
+          </v-col>
+        </v-card>
+        <rideCard :item="item" :statusName="statusName" />
+        <v-dialog persistent v-model="item.dialog" width="400">
+          <v-card :color="cardColors.bg" dark>
+            <v-col>
+              <v-toolbar :color="cardColors.header" dark>
+                Describe your changes in the box below. <br />
+              </v-toolbar>
+              <v-textarea
+                background-color="#3b4474"
+                auto-grow
+                outlined
+                clearable
+                hint="press SEND when you're done."
+                v-model="rideChgInfo"
+              ></v-textarea>
+              <v-card-actions>
+                <v-btn
+                  dark
+                  color="green darken-1"
+                  @click="emailInfo(item, rideChgInfo)"
+                  >Send
                 </v-btn>
-              </v-row>
+                <v-btn dark color=" red darken-1" @click="item.dialog = false"
+                  >Cancel</v-btn
+                >
+              </v-card-actions>
+              <rideCard :item="item" :statusName="statusName" />
             </v-col>
           </v-card>
-          <rideCard :item="item" :statusName="statusName" />
-          <v-dialog persistent v-model="item.dialog" width="400">
-            <v-card :color="cardColors.bg" dark>
-              <v-col>
-                <v-toolbar :color="cardColors.header" dark>
-                  Describe your changes in the box below. <br />
-                </v-toolbar>
-                <v-textarea
-                  background-color="#3b4474"
-                  auto-grow
-                  outlined
-                  clearable
-                  hint="press SEND when you're done."
-                  v-model="rideChgInfo"
-                ></v-textarea>
-                <v-card-actions>
-                  <v-btn
-                    dark
-                    color="green darken-1"
-                    @click="emailInfo(item, rideChgInfo)"
-                    >Send
-                  </v-btn>
-                  <v-btn dark color=" red darken-1" @click="item.dialog = false"
-                    >Cancel</v-btn
-                  >
-                </v-card-actions>
-                <rideCard :item="item" :statusName="statusName" />
-              </v-col>
-            </v-card>
-          </v-dialog>
-        </v-card>
-      </v-layout>
+        </v-dialog>
+      </v-card>
+      <!--       </v-layout>
+ -->
     </v-row>
   </v-container>
 </template>
@@ -110,10 +111,10 @@ export default {
   data() {
     return {
       statusField: "foo",
-      confirmColor: "light-green lighten-3 black--text",
+      confirmColor: "#18ff03 ",
       changeColor: "orange lighten-3 black--text ",
 
-      pendColor: "light-blue  lighten-3 black--text ",
+      pendColor: "grey  lighten-2 black--text ",
       dialog2: false,
       modifyInfo: "",
       rideChgInfo: "",
@@ -363,8 +364,9 @@ export default {
   background-color: purple;
 }
 .card {
-  border: 8px solid #03b44749;
-  border-top: 15px solid #7deba749;
+  border: 8px solid #18ff03;
+  border-top: 25px solid #18ff03;
   border-bottom: 0px solid #7deba749;
+  margin: 10px;
 }
 </style>

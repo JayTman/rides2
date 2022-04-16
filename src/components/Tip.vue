@@ -25,7 +25,7 @@ export default {
       type: String,
       required: true,
     },
-    //    methods: {},
+    methods: {},
   },
 };
 </script>

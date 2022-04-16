@@ -55,13 +55,7 @@
       </div>
       <div v-else>
         <v-row justify="center">
-          <v-card
-            width="400"
-            :color="snackbarColor"
-            dark
-            height="150"
-            class="text-center"
-          >
+          <v-card width="400" dark height="150" class="warning text-center">
             <v-col>
               <v-row justify="center">
                 <v-card-subtitle>
@@ -71,6 +65,8 @@
                   </h2>
                   <br />
                   You can only reset the rides calendar once per year.
+                  <br />
+                  {{ overRideMsg }}
                 </v-card-subtitle>
               </v-row>
             </v-col>
@@ -132,6 +128,7 @@ export default {
   data() {
     return {
       snackbarText: "",
+      overRideMsg: "",
       timeout: -1,
       snackBtn: true,
       resetMsg: false,
@@ -170,7 +167,8 @@ export default {
     },
     overrideLock() {
       this.updateResetFlag("WRITE", "2020 Reset by Override");
-      this.snackbarColor = "red  white--text";
+      (this.overRideMsg = "Override has been set"),
+        (this.snackbarColor = "red  white--text");
     },
     updateResetFlag(mode, newYearDate) {
       var url =
@@ -204,11 +202,6 @@ export default {
         return true;
       } else {
         this.snackbarText = "Resetting for the New Year";
-        var today = new Date();
-        var dt = today.toDateString();
-        var year = today.getFullYear().toString();
-        var resetDate = year + " " + dt;
-        console.log("at newyearreset " + year + " " + dt + resetDate);
         EventBus.$emit("wait", "true");
         //
         //      this.getRides("all", "all", this.u2).then((resp) => {
@@ -241,14 +234,13 @@ export default {
         startDate = this.currentYear + "-1-1";
         endDate = this.currentYear + "-12-31";
       }
-      console.log("year pased in " + year + "prev year is " + this.prevYear);
+      console.log(
+        "RESET NEW YEAR year pased in " + year + "prev year is " + this.prevYear
+      );
 
       await this.getRides("all", "all", null, startDate, endDate)
         .then((resp) => {
           rideList = resp;
-          if (rideList.length === 0) {
-            return;
-          }
           var APIkey =
             "ca3fec0bc53190c90863e0f41579e27cbc98a57a97c909455df7db816f4ae4bd";
           const axiosConfig = {
@@ -292,13 +284,15 @@ export default {
             Promise.all(promises2).then(() => {});
             console.log("done promises 2");
             console.log("update reset flag");
-            var today = new Date();
-            var resetDate =
-              today.getFullYear().toString() + " " + today.toDateString();
-            this.updateResetFlag("WRITE", resetDate);
             this.snackbarText = "New Year Reset completed.";
             this.snackbar = true;
             this.snackBtn = false;
+            var today = new Date();
+            var dt = today.toDateString();
+            var year = today.getFullYear().toString();
+            var resetDate = year + " " + dt;
+            this.updateResetFlag("WRITE", resetDate);
+            console.log("at newyearreset " + year + " " + dt + resetDate);
             if (this.snadkbar === false) this.$router.push({ path: "/" });
           });
         })

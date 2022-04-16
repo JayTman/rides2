@@ -4,10 +4,16 @@ import axios from "axios";
 
 /****************/
 Vue.prototype.$node_env = process.env.NODE_ENV;
-var node_env =
-  node_env = process.env.NODE_ENV;
-if (node_env === "comet") {
-  Vue.prototype.$addr = "https://test.ebcrides.org/";
+var node_env = process.env.NODE_ENV;
+console.log(
+  "NODE_ENV is " +
+  node_env
+);
+
+Vue.prototype.$addr = ""
+
+if (node_env === "cal") {
+  Vue.prototype.$addr = "https://cal.ebcrides.org/";
 } else if (node_env === "python") {
   // bedroom 3
   Vue.prototype.$addr = "https://python.ebcrides.org/";
@@ -15,18 +21,30 @@ if (node_env === "comet") {
   // bedroom 3
   Vue.prototype.$addr = "http://192.168.1.29/";
 } else if (node_env === "dev") {
-  // bedroom 4
+  // bedroom 4ll
   Vue.prototype.$addr = "http://192.168.1.40/";
+} else if (node_env === "staging") {
+  // bedroom 4
+  Vue.prototype.$addr = "http://test.ebcrides.org/";
 } else if (node_env === "prod") {
   Vue.config.productionTip = true;
   Vue.prototype.$addr = "https://ebcrides.org/";
 } else {
   Vue.prototype.$addr = "http://192.168.1.40/";
+  console.log("NODE_ENV not set");
 }
-Vue.prototype.$pythonServer = Vue.prototype.$addr + "python/";
 
 //0401 test
-Vue.prototype.$calendar = "ks7xn6ux3obaeb74e9"
+Vue.prototype.$addr = "https://python.ebcrides.org/";
+Vue.prototype.$calendar = "ksrdre9m4dz88zvpex";
+Vue.prototype.$addr = "http://192.168.1.40/";
+Vue.prototype.$pythonServer = Vue.prototype.$addr + "python/";
+console.log(
+  "END RUN_ENV is " +
+  node_env +
+  " python server:" +
+  Vue.prototype.$pythonServer
+);
 // jays ride schedulea
 
 //   Vue.prototype.$calendar= "ksbmqapicnorxb63e1";
@@ -63,14 +81,7 @@ if (mytheme === "original") {
   Vue.prototype.$fgColor = "primary lighten-3";
 }
 
-
-
-
-
-
 /*********/
-
-
 
 Vue.prototype.$statusDisplayName = "";
 const theme = "blue";
@@ -353,7 +364,8 @@ export default {
       var today = new Date();
       var month = today.getMonth();
       var year = today.getFullYear();
-      if (month > 10) {
+      console.log("month is" + month);
+      if (month > 1) {
         year += 1;
       }
       var currentYear = year;
@@ -368,9 +380,10 @@ export default {
       await this.getConfig();
       return new Promise((resolve, reject) => {
         const rideList = [];
+        const skip = [];
         var passed = "datest passed in";
         if (start === "") {
-          passed = "dates set to default ";
+          passed = "FALSE";
           start = "1/1/" + this.getYear("current");
           end = "12/1/" + this.getYear("current");
         }
@@ -385,7 +398,7 @@ export default {
           status +
           "dates passed in: " +
           passed +
-          " " +
+          "calendar " +
           this.$calendar
         );
 
@@ -404,6 +417,7 @@ export default {
           start +
           "&endDate=" +
           end;
+        console.log("URL " + url2);
         axios({
           method: "GET",
           url: url2,
@@ -417,13 +431,18 @@ export default {
 
             for (var cnt = 0; cnt < response2.data.events.length; cnt++) {
               // Ignore weekly rides
+
               var ride = response2.data.events[cnt];
               if (ride.rrule.search("YEAR") === -1) {
+                ride.reason = "year";
+                skip.push(ride);
                 continue;
               }
 
               // ignore if no ride leader
               if (ride.who === "") {
+                ride.reason = "who";
+                skip.push(ride);
                 continue;
               }
               // create a list of all ride leaders
@@ -437,14 +456,20 @@ export default {
                 ride.subcalendar_id
               );
               if (this.fuzzyMatch(sub, "meet")) {
+                ride.reason = "meeting";
+                skip.push(ride);
                 continue;
               }
               if (ride.title.toLowerCase().search("club") !== -1) {
+                ride.reason = "meeting";
+                skip.push(ride);
                 continue;
               }
 
               if (rideLeader !== "all") {
                 if (ride.who.indexOf(rideLeader) === -1) {
+                  ride.reason = "no leader match";
+                  skip.push(ride);
                   continue;
                 }
               }
@@ -460,7 +485,6 @@ export default {
               ride.Date += " " + dt.getHours() + ":";
               ride.Date += ("00" + dt.getMinutes()).slice(-2);
               ride.dialog = false;
-
               rideList.push(ride);
               //                 total += 1;
             }
@@ -474,9 +498,14 @@ export default {
             //              total
             //          );
             console.log("Returning " + rideList.length + " rides.");
+            skip.sort((a, b) => (a.reason > b.reason ? 1 : -1));
+            for (cnt = 0; cnt < skip.length; cnt++) {
+              var rd = skip[cnt];
+              console.log(rd.reason);
+            }
             if (rideList.length === 0) {
-              alert("Found no ride data for " + start + " thru " + end + ".");
-              return null;
+              reject("Found no ride data for " + start + " thru " + end + ".");
+
             }
             if (func !== null) {
               EventBus.$emit("wait", "false");

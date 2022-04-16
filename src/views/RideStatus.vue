@@ -24,7 +24,8 @@
                     color="primary"
                     @click="emailMessage(allRideLeaders, 'all', 'newYear.msg')"
                   >
-                    New Year
+                    All Rides for <br />
+                    the New Year
                   </v-btn>
                 </slot>
               </Tip>
@@ -249,10 +250,10 @@ export default {
 };
 </script>
 <style>
-.v=application {
+.v-application {
   line-height: "0.8";
 }
-.v-sheet.list {
+v-sheet.list {
   background: hsl(61, 85%, 78%);
 }
 .v-sheet.v-list {

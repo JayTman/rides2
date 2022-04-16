@@ -1,0 +1,2 @@
+sed -e 's/="\/js/="\/vue\/js/g' index.html
+
