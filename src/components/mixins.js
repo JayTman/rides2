@@ -5,12 +5,9 @@ import axios from "axios";
 /****************/
 Vue.prototype.$node_env = process.env.NODE_ENV;
 var node_env = process.env.NODE_ENV;
-console.log(
-  "NODE_ENV is " +
-  node_env
-);
+console.log("NODE_ENV is " + node_env);
 
-Vue.prototype.$addr = ""
+Vue.prototype.$addr = "";
 
 if (node_env === "cal") {
   Vue.prototype.$addr = "https://cal.ebcrides.org/";
@@ -37,15 +34,15 @@ if (node_env === "cal") {
 //0401 test
 Vue.prototype.$addr = "https://python.ebcrides.org/";
 Vue.prototype.$calendar = "ksrdre9m4dz88zvpex";
-Vue.prototype.$addr = "http://192.168.1.40/";
-Vue.prototype.$pythonServer = Vue.prototype.$addr + "python/";
+Vue.prototype.$addr = "https://" + location.host + "/";
+Vue.prototype.$imageDir = "images/cal/";
+if (node_env === "development") {
+  Vue.prototype.$pythonServer = "http://192.168.1.40/python/";
+  Vue.prototype.$addr = "http://192.168.1.40/";
+} else Vue.prototype.$pythonServer = "https://python.ebcrides.org/python/";
 console.log(
-  "END RUN_ENV is " +
-  node_env +
-  " python server:" +
-  Vue.prototype.$pythonServer
+  "END RUN_ENV is " + node_env + " python server:" + Vue.prototype.$pythonServer
 );
-// jays ride schedulea
 
 //   Vue.prototype.$calendar= "ksbmqapicnorxb63e1";
 
@@ -61,7 +58,6 @@ console.log(
 //  = "http://192.168.1.40/";
 //  Vue.prototype.$pythonServer
 //  = addr + "ebc/";
-Vue.prototype.$imageDir = "images/cal/";
 
 ///
 
@@ -364,8 +360,7 @@ export default {
       var today = new Date();
       var month = today.getMonth();
       var year = today.getFullYear();
-      console.log("month is" + month);
-      if (month > 1) {
+      if (month > 10) {
         year += 1;
       }
       var currentYear = year;
@@ -505,7 +500,6 @@ export default {
             }
             if (rideList.length === 0) {
               reject("Found no ride data for " + start + " thru " + end + ".");
-
             }
             if (func !== null) {
               EventBus.$emit("wait", "false");

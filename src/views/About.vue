@@ -17,9 +17,7 @@
               <v-row justify="space-around">
                 python server: {{ this.$pythonServer }}
               </v-row>
-              <v-row justify="space-around">
-                server: {{ this.$addr }} foo {{ this.$config.py }}
-              </v-row>
+              <v-row justify="space-around"> server: {{ this.$addr }} </v-row>
 
               <v-row justify="space-around">
                 Active Calendar:

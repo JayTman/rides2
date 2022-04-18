@@ -9,11 +9,11 @@ function myconfig() {
   Vue.prototype.$addr = py;
   console.log(
     "NODE_ENV is " +
-    node_env +
-    " py is:" +
-    py +
-    " python server:" +
-    Vue.prototype.$pythonServer
+      node_env +
+      " py is:" +
+      py +
+      " python server:" +
+      Vue.prototype.$pythonServer
   );
 
   Vue.prototype.$addr = "https://test.ebcrides.org/";
@@ -47,11 +47,11 @@ function myconfig() {
   Vue.prototype.$calendar = "ksi78qut5vtychikc1";
   console.log(
     "END RUN_ENV is " +
-    node_env +
-    " py is:" +
-    py +
-    " python server:" +
-    Vue.prototype.$pythonServer
+      node_env +
+      " py is:" +
+      py +
+      " python server:" +
+      Vue.prototype.$pythonServer
   );
   // jays ride schedulea
 

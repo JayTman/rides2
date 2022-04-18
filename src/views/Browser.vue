@@ -192,6 +192,7 @@ export default {
       return (
         "<img src='" +
         this.$addr +
+        "images/cal/" +
         this.$imageDir +
         title +
         ".jpg' style='float: left; margin: 10px;'/>"
@@ -326,6 +327,7 @@ export default {
             images[i].img2 = img + ".jpg?cache=" + Math.random();
             // console.log(images[i].title);
             imageList.push(images[i]);
+            console.log(this.pp(images[i]));
           }
           EventBus.$emit("wait", "false");
         })

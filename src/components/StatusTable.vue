@@ -1,12 +1,5 @@
 <template>
   <div id="statusTable">
-    <!--       expanded: {{ itemExpanded }}
- -->
-    <!-- 
-    ? (itemExpanded = $event['item'])
-            : ($event['item'] = null)
-a
- -->
     <v-data-table
       fixed-header
       v-show="pending"
@@ -24,24 +17,6 @@ a
       @click:row="(item, slot) => slot.expand(!slot.isExpanded)"
       @item-expanded="newRL($event['item'])"
     >
-      <!-- 
-      <template v-slot:header="{ props: { headers } }">
-        <thead>
-          <tr>
- 
-            <th
-              v-for="h in headers"
-              :class="headerColor"
-              align="center"
-              class="foo"
-              :key="h.rideLeader"
-            >
-              <span class="foo"> {{ h.text }} </span>
-            </th>
-          </tr>
-        </thead>
-      </template>
- -->
       <template v-slot:expanded-item="{ item }">
         <td :colspan="headers.length">
           <th>
@@ -66,7 +41,7 @@ a
 import RidesTable from "@/components/RidesTable.vue";
 import EventBus from "@/event-bus.js";
 
-export default {
+export default { 
   name: "StatusTable",
   components: {
     RidesTable,

@@ -202,6 +202,11 @@ export default {
         return true;
       } else {
         this.snackbarText = "Resetting for the New Year";
+        var today = new Date();
+        var dt = today.toDateString();
+        var year = today.getFullYear().toString();
+        var resetDate = year + " " + dt;
+        console.log("at newyearreset " + year + " " + dt + resetDate);
         EventBus.$emit("wait", "true");
         //
         //      this.getRides("all", "all", this.u2).then((resp) => {
@@ -234,13 +239,14 @@ export default {
         startDate = this.currentYear + "-1-1";
         endDate = this.currentYear + "-12-31";
       }
-      console.log(
-        "RESET NEW YEAR year pased in " + year + "prev year is " + this.prevYear
-      );
+      console.log("year pased in " + year + "prev year is " + this.prevYear);
 
       await this.getRides("all", "all", null, startDate, endDate)
         .then((resp) => {
           rideList = resp;
+          if (rideList.length === 0) {
+            return;
+          }
           var APIkey =
             "ca3fec0bc53190c90863e0f41579e27cbc98a57a97c909455df7db816f4ae4bd";
           const axiosConfig = {
@@ -278,21 +284,21 @@ export default {
                 ride.custom[statusID][0] = pend;
               }
               promises2.push(axios.put(url + ride.id, ride, axiosConfig));
-              if (ride.custom[statusID][0] !== pend)
+
+              /*               if (ride.custom[statusID][0] !== pend)
                 console.log("pending not set " + this.pp(ride));
+ */
             }
             Promise.all(promises2).then(() => {});
             console.log("done promises 2");
             console.log("update reset flag");
+            var today = new Date();
+            var resetDate =
+              today.getFullYear().toString() + " " + today.toDateString();
+            this.updateResetFlag("WRITE", resetDate);
             this.snackbarText = "New Year Reset completed.";
             this.snackbar = true;
             this.snackBtn = false;
-            var today = new Date();
-            var dt = today.toDateString();
-            var year = today.getFullYear().toString();
-            var resetDate = year + " " + dt;
-            this.updateResetFlag("WRITE", resetDate);
-            console.log("at newyearreset " + year + " " + dt + resetDate);
             if (this.snadkbar === false) this.$router.push({ path: "/" });
           });
         })
@@ -303,7 +309,117 @@ export default {
         });
     },
   },
-  mounted() {
+
+  /*     newYearReset() {
+      this.snackbar = true;
+      this.prevYear = this.getYear("previous");
+      this.currentYear = this.getYear("current").toString();
+      if (this.prevResetDate.substr(0, 4) === this.currentYear.toString()) {
+        this.snackbarText = "already done";
+        return true;
+      } else {
+        this.snackbarText = "Resetting for the New Year";
+        EventBus.$emit("wait", "true");
+        //
+        //      this.getRides("all", "all", this.u2).then((resp) => {
+        console.log("********** prev year started [" + this.prevYear + "]");
+        this.updateYear(this.prevYear).then((resp) => {
+          console.log(
+            resp + "********** prev year done [" + this.prevYear + "]"
+          );
+        });
+        console.log("********** theis year started [" + this.currentYear + "]");
+        this.updateYear(this.currentYear).then((resp) => {
+          console.log(
+            resp + "this year done ********** [" + this.currentYear + "]"
+          );
+        });
+      }
+    },
+
+    async updateYear(year) {
+      this.getConfig();
+      let rideList = [];
+      //            this.currentYear = this.getYear("current");
+      //            this.prevYear = this.getYear("previous");
+      //            rideList.none = "none";
+
+      var startDate = "";
+      var endDate = "";
+      if (year === this.prevYear) {
+        startDate = this.prevYear + "-1-1";
+        endDate = this.prevYear + "-12-31";
+      } else {
+        startDate = this.currentYear + "-1-1";
+        endDate = this.currentYear + "-12-31";
+      }
+      console.log(
+        "RESET NEW YEAR year pased in " + year + "prev year is " + this.prevYear
+      );
+
+      var results = await this.getRides("all", "all", null, startDate, endDate)
+        .then((resp) => {
+          rideList = resp;
+          var APIkey =
+            "ca3fec0bc53190c90863e0f41579e27cbc98a57a97c909455df7db816f4ae4bd";
+          const axiosConfig = {
+            headers: {
+              "Teamup-Token": APIkey,
+              "Content-type": "application/json; charset=UTF-8",
+            },
+          };
+          const url = "https://api.teamup.com/" + this.$calendar + "/events/";
+          const promises = [];
+          const promises2 = [];
+            if (results === 0) {
+        console.log("no rides found for " + year);
+      for (let j = 0; j < rideList.length; j++) {
+        if (rideList[j].rrule.search("WEEK") !== -1) {
+          console.log("ERROR checking for WEEK " + rideList[j]);
+          continue;
+        }
+        if (rideList[j].title.search("Club Meet") !== -1) {
+          console.log("ERROR" + rideList[j]);
+          continue;
+        }
+        promises.push(axios.get(url + rideList[j].id, axiosConfig));
+      }
+      Promise.all(promises)
+        .then((resp) => {
+          const statusID = this.statusFieldID;
+          const pend = this.getStatusID("pend");
+          for (let j = 0; j < resp.length; j++) {
+            const ride = resp[j].data.event;
+
+            if (year === this.prevYear) {
+              ride.redit = "single";
+            } else {
+              ride.redit = "all";
+              ride.custom[statusID][0] = pend;
+            }
+            promises2.push(axios.put(url + ride.id, ride, axiosConfig));
+            if (ride.custom[statusID][0] !== pend)
+              console.log("pending not set " + this.pp(ride));
+          }
+
+          Promise.all(promises2).then(() => {
+          console.log("done promises 2");
+          console.log("update reset flag");
+          this.snackbarText = "New Year Reset completed.";
+          this.snackbar = true;
+          this.snackBtn = false;
+          var today = new Date();
+          var dt = today.toDateString();
+          var year = today.getFullYear().toString();
+          var resetDate = year + " " + dt;
+          this.updateResetFlag("WRITE", resetDate);
+          console.log("at newyearreset " + year + " " + dt + resetDate);
+        })
+          if (this.snadkbar === false) this.$router.push({ path: "/" })
+      });
+        },
+    }),
+ */ mounted() {
     this.updateResetFlag("READ", "");
     this.prevYear = this.getYear("previous");
     this.currentYear = this.getYear("current");
