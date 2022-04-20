@@ -47,50 +47,10 @@
             Save
           </v-btn>
  -->
-      <v-card :color="this.$bgColor">
-        <v-container :class="this.$bgColor">
-          <h3>
-            {{ $route.params.title }}
-          </h3>
-          <!-- 
-        This is tinymce
-        APIkey: uc46vz0xq4tugh14zeq8f2f8pap1dqrb2p7l5azjmluczknf
-        Website: https://www.tiny.cloud/
-        Login: ebcrides@ebcrides.org
-        Password: ebc55555cal
-        registered domains: ebcrides.org, localhost
-       -->
-
-          <div style="display: none">{{ (inp = content) }}</div>
-
-          <div id="inp">
-            <editor
-              v-model="inp"
-              api-key="uc46vz0xq4tugh14zeq8f2f8pap1dqrb2p7l5azjmluczknf"
-              :init="{
-                body_class: 'Editor',
-                backcolor: 'red',
-                oninit: getMsgFile(this.$route.params.filename),
-                plugins:
-                  ' paste importcss searchreplace autolink  directionality code  charmap image link media   table charmap hr  anchor  advlist lists    quickbars emoticons',
-                menubar: ' edit  insert format tools table',
-                toolbar:
-                  'undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor removeformat | pagebreak | charmap emoticons | insertfile image media template link anchor  | ltr rtl',
-                importcss_append: true,
-                height: 600,
-                image_caption: true,
-                toolbar_mode: 'sliding',
-                contextmenu: 'image',
-                body_class: 'my_class',
-              }"
-            >
-            </editor>
-          </div>
-          <!--           <v-btn value="save" color="primary" @click="saveMsg('save')">
-            Save
-          </v-btn>
- -->
-          <v-layout row>
+      <v-container fluid :class="this.$bgColor">
+        <v-row>
+          <v-col cols="1">
+            <v-card flat :color="this.$bgColor" height="50"> </v-card>
             <v-col cols="3">
               <Tip
                 text="This will send a message with the current version of this report to your email address. <br /> This will show you what the report would actually look like and save it."
@@ -120,9 +80,54 @@
                 </slot>
               </Tip>
             </v-col>
-          </v-layout>
-        </v-container>
-      </v-card>
+          </v-col>
+          <v-col>
+            <v-card :color="this.$bgColor">
+              <h3>
+                {{ $route.params.title }}
+              </h3>
+              <!-- 
+        This is tinymce
+        APIkey: uc46vz0xq4tugh14zeq8f2f8pap1dqrb2p7l5azjmluczknf
+        Website: https://www.tiny.cloud/
+        Login: ebcrides@ebcrides.org
+        Password: ebc55555cal
+        registered domains: ebcrides.org, localhost
+       -->
+
+              <div style="display: none">{{ (inp = content) }}</div>
+
+              <div id="inp">
+                <editor
+                  v-model="inp"
+                  api-key="uc46vz0xq4tugh14zeq8f2f8pap1dqrb2p7l5azjmluczknf"
+                  :init="{
+                    body_class: 'Editor',
+                    backcolor: 'red',
+                    oninit: getMsgFile(this.$route.params.filename),
+                    plugins:
+                      ' paste importcss searchreplace autolink  directionality code  charmap image link media   table charmap hr  anchor  advlist lists    quickbars emoticons',
+                    menubar: ' edit  insert format tools table',
+                    toolbar:
+                      'undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor removeformat | pagebreak | charmap emoticons | insertfile image media template link anchor  | ltr rtl',
+                    importcss_append: true,
+                    height: 600,
+                    image_caption: true,
+                    toolbar_mode: 'sliding',
+                    contextmenu: 'image',
+                    body_class: 'my_class',
+                  }"
+                >
+                </editor>
+              </div>
+              <!--           <v-btn value="save" color="primary" @click="saveMsg('save')">
+            Save
+          </v-btn>
+ -->
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
     </v-card>
   </div>
 </template>

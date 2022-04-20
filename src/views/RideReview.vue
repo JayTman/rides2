@@ -114,7 +114,7 @@ export default {
       confirmColor: "#18ff03 ",
       changeColor: "orange lighten-3 black--text ",
 
-      pendColor: "grey  lighten-2 black--text ",
+      pendColor: "yellow  lighten-2 black--text ",
       dialog2: false,
       modifyInfo: "",
       rideChgInfo: "",

@@ -6,7 +6,7 @@
       show-expand
       :height="windowSize.y"
       hide-default-footer
-      expand-icon="small mdi-arrow-expand-down"
+      expand-icon="mdi-menu-open --color blue -lighten-4 white--text"
       :headers="headers"
       item-key="rideLeader"
       contextmenu=""
@@ -19,7 +19,6 @@
     >
       <template v-slot:expanded-item="{ item }">
         <td :colspan="headers.length">
-          <th>
           <v-container>
             <RidesTable
               :rideLeader="item.rideLeader"
@@ -29,7 +28,6 @@
               hideHeader="hide"
             />
           </v-container>
-          </th>
         </td>
       </template>
     </v-data-table>
@@ -41,7 +39,7 @@
 import RidesTable from "@/components/RidesTable.vue";
 import EventBus from "@/event-bus.js";
 
-export default { 
+export default {
   name: "StatusTable",
   components: {
     RidesTable,

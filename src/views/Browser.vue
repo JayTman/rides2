@@ -193,7 +193,6 @@ export default {
         "<img src='" +
         this.$addr +
         "images/cal/" +
-        this.$imageDir +
         title +
         ".jpg' style='float: left; margin: 10px;'/>"
       );

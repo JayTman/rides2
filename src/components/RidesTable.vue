@@ -48,7 +48,7 @@
       </template>
       <template v-slot:item.tz="{ item }">
         <v-chip :color="getColor(item[statusFieldName])">
-          <v-icon color="black"> mdi-bicycle </v-icon>
+          <v-icon> mdi-bicycle </v-icon>
         </v-chip>
       </template>
     </v-data-table>
@@ -121,7 +121,7 @@ export default {
       } else if (Status2.toLowerCase().search("change") > -1) {
         return "dee-purple accent-2";
       } else if (Status2.toLowerCase().search("pend") > -1) {
-        return "brown lighten-1  white--text";
+        return "brown lighten-3 ";
       }
       //      else if (Status.lower.match(/sun/g) > -1) return "red";
       //      else if (Status.lower.match(/wed/g) > -1) return "green";

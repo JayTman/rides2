@@ -121,7 +121,6 @@ export default {
   },
   mounted() {
     this.hostName = location.host;
-    this.pythonServer = this.$confi.py;
   },
 };
 </script>

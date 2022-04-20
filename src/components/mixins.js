@@ -360,7 +360,7 @@ export default {
       var today = new Date();
       var month = today.getMonth();
       var year = today.getFullYear();
-      if (month > 10) {
+      if (month > 1) {
         year += 1;
       }
       var currentYear = year;
@@ -499,7 +499,8 @@ export default {
               console.log(rd.reason);
             }
             if (rideList.length === 0) {
-              reject("Found no ride data for " + start + " thru " + end + ".");
+              console.log("Found no ride data for " + start + " thru " + end + ".");
+              resolve(rideList);
             }
             if (func !== null) {
               EventBus.$emit("wait", "false");
