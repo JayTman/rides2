@@ -3,6 +3,8 @@
     <v-container fluid>
       <v-card height="800px">
         <v-layout align-center justify-center>
+          <!--         <v-dialog width="400px" axs12 sm8 md4 v-model="show">
+ -->
           <v-dialog
             width="400px"
             persistent
@@ -59,14 +61,14 @@ export default {
   methods: {
     login() {
       this.$router.push("/");
-      alert("login init " + this.$show);
+      //        alert("login init " + this.$show);
     },
     password() {
       alert("passwd");
     },
   },
   created() {
-    alert("moumred init " + this.$init);
+    //    alert("moumred init " + this.$init);
   },
 };
 </script>

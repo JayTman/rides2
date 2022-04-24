@@ -1,138 +1,116 @@
 <template>
   <div id="Browser">
-    <v-container fluid :class="this.$headerColor">
-      <v-row justify="center">
-        <Tip
-          color="blue"
-          text="You can do some minor editing to each image by clicking on the image. Pull down the Actions menu to see the possible actions. <br /> On MS Windows you can drag and drop between the Image manager and the ride Editor in the Calendar. On Apple computers you need to copy and paste. Drang and drop work??? on  Android and IOS <br />"
-        >
-          <slot>
-            <h1>Image Manager</h1>
-          </slot>
-        </Tip>
+    <v-container fluid>
+      <v-row :class="this.$headerColor">
+        <v-col cols="4">
+          <v-btn class="primary" height="50">
+            <v-icon> mdi-upload</v-icon>
+            <input
+              type="file"
+              ref="file"
+              id="file"
+              class="inputfile"
+              v-on:change="handleUpload()"
+            />
+            <label for="file"> Upload a picture... </label>
+          </v-btn>
+        </v-col>
+        <v-col>
+          <h2 class="display-1 font-weight-bold mb-3">Picture Gallery</h2>
+        </v-col>
       </v-row>
-      <v-row justify="center">
-        <v-btn class="primary btn">
-          <v-icon> mdi-upload</v-icon>
-          Upload a Picture
-          <input
-            class="uploadBtn"
-            type="file"
-            ref="file"
-            id="file"
-            v-on:change="handleUpload()"
-          />
-        </v-btn>
-      </v-row>
-      <v-dialog
-        :class="this.$headerColor"
-        v-model="dialog"
-        persistent
-        width="350"
-      >
-        <v-card :color="this.$headerColor">
-          <v-col>
-            <v-row justify="center">
-              <v-img
-                :src="curItem.img2"
-                :max-width="curItem.width"
-                :max-height="curItem.height"
-              ></v-img>
-            </v-row>
-          </v-col>
-          <v-text-field
-            dark
-            :background-color="this.inputColor"
-            ripple
-            :label="curItem.oldName"
-            v-model="curItem.title"
-            @mousedown="changeColor()"
-            @keydown.enter="renameImage(curItem.oldName, curItem.title)"
-          >
-          </v-text-field>
-          <v-card> </v-card>
-          <v-card-actions>
-            <v-menu>
-              <template v-slot:activator="{ on }">
-                <v-btn v-on="on" class="primary">
-                  <v-icon> mdi-dots-vertical</v-icon>
-                  Actions
-                </v-btn>
-              </template>
+    </v-container>
 
+    <v-dialog
+      v-if="dialog"
+      :background-color="this.$headerColor"
+      v-model="dialog"
+      persistent
+      :width="350"
+    >
+      <v-card :color="this.$headerColor">
+        <v-img
+          :src="curItem.img2"
+          :width="curItem.width"
+          :height="curItem.height"
+        ></v-img>
+        <v-text-field
+          dark
+          background-color="orange darken-4"
+          ripple
+          v-model="curItem.title"
+          @keydown.enter="renameImage(curItem.oldName, curItem.title)"
+        >
+        </v-text-field>
+        <v-card-actions>
+          <v-row justify="space-between">
+            <v-menu dark>
+              <v-btn v-on="on" class="primary"> Actions </v-btn>
               <v-list>
                 <v-list-item
-                  @click="copyIt(curItem.title)"
-                  v-clipboard:copy="copyIt(curItem.title)"
+                  @click="processImage('lighter', curItem.title, curItem.img)"
                 >
-                  Copy Image Source Code
+                  <v-list-item-title>Lighter</v-list-item-title>
                 </v-list-item>
                 <v-list-item
-                  @click="copyIt(curItem.title)"
-                  v-clipboard:copy="copyIt2(curItem.title)"
+                  @click="processImage('darker', curItem.title, curItem.img)"
                 >
-                  Copy Image Link
-                </v-list-item>
-
-                <v-list-item @click="processImage('lighter', curItem.title)">
-                  Lighter
-                </v-list-item>
-                <v-list-item @click="processImage('darker', curItem.title)">
-                  Darker
+                  <v-list-item-title> Darker</v-list-item-title>
                 </v-list-item>
 
                 <v-list-item
-                  @click="processImage('rotateR', curItem.title, item.img)"
+                  @click="
+                    processImage('rotateR', curItem.title, item.img, item.img)
+                  "
                 >
-                  Rotate Clockwise
+                  <v-list-item-title>Rotate Clockwise</v-list-item-title>
                 </v-list-item>
 
-                <v-list-item @click="processImage('rotateL', curItem.title)">
-                  Rotate Counter Clockwise
+                <v-list-item
+                  @click="processImage('rotateL', curItem.title, curItem.img)"
+                >
+                  <v-list-item-title
+                    >Rotate Counter Clockwise</v-list-item-title
+                  >
                 </v-list-item>
-                <v-list-item @click="processImage('smaller', curItem.title)">
-                  Smaller
+                <v-list-item
+                  @click="processImage('smaller', curItem.title, curItem.img)"
+                >
+                  <v-list-item-title>Smaller</v-list-item-title>
                 </v-list-item>
-                <v-list-item @click="processImage('bigger', curItem.title)">
-                  Bigger
+                <v-list-item
+                  @click="processImage('bigger', curItem.title, curItem.img)"
+                >
+                  <v-list-item-title>Bigger</v-list-item-title>
                 </v-list-item>
                 <v-list-item> </v-list-item>
-                <v-list-item @click="processImage('delete', curItem.title)">
-                  <v-list-item-title color="red">Delete</v-list-item-title>
+                <v-list-item
+                  @click="processImage('delete', curItem.title, curItem.img)"
+                >
+                  <v-list-item-title>Delete</v-list-item-title>
                 </v-list-item>
               </v-list>
             </v-menu>
-            <v-row justify="space-around">
-              <v-btn color="primary" @click="done()"> Done </v-btn>
-            </v-row>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-    </v-container>
-    <v-container fluid :class="this.$bgColor" v-show="show">
+            <v-btn color="primary" @click="done()"> Done </v-btn>
+          </v-row>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-container fluid :class="this.$bgColor">
       <v-row justify="start" align="end">
         <div v-for="item in imageList" :key="item.id">
           <v-col>
             <v-card :class="fgColor" @click="updateInfo(imageList[item.id])">
+              <v-icon> mdi-dots-vertical </v-icon>
               <v-layout col justify-end>
                 <v-img
-                  class="image2 warning"
+                  :width="item.width"
+                  :height="item.height"
                   :src="item.img2"
-                  :width="item.width"
-                  :height="item.height"
+                  v-model="curItem.img2"
                 ></v-img>
-                <v-card
-                  class="image"
-                  v-model="item.img"
-                  color="red"
-                  :width="item.width"
-                  :height="item.height"
-                  v-html="item.img"
-                ></v-card>
+                <div class="inputfile2" v-html="item.img"></div>
               </v-layout>
-              <v-card-text>
-                {{ item.title.substr(0, 25) }}
-              </v-card-text>
             </v-card>
           </v-col>
         </div>
@@ -142,19 +120,16 @@
 </template>
 
 <script>
+// @ is an alias to /src
 import axios from "axios";
 import EventBus from "../event-bus";
-import Tip from "../components/Tip.vue";
 // const server = "http://192.168.1.22/";
 export default {
-  name: "Browser",
-  components: {
-    Tip,
-  },
+  name: "browser",
+  components: {},
   data() {
     return {
-      inputColor: "orange darken-4",
-      show: true,
+      //      show: true,
       dialog: false,
       response: [],
       fgColor: "",
@@ -170,14 +145,13 @@ export default {
       curItem: [],
     };
   },
+  formHtml(item) {
+    return item.image + this.editedIndex === -1 ? "New Item" : "Edit Item";
+  },
   methods: {
-    tttt(x, y) {
-      alert("one" + x);
-      alert(y);
-    },
     findIndexByKeyValue(_array, key, value) {
       for (var i = 0; i < _array.length; i++) {
-        if (_array[i][key] === value) {
+        if (_array[i][key] == value) {
           return i;
         }
       }
@@ -188,36 +162,19 @@ export default {
       //      this.show = true;
       this.dialog = false;
     },
-    copyIt(title) {
-      return (
-        "<img src='" +
-        this.$addr +
-        "images/cal/" +
-        title +
-        ".jpg' style='float: left; margin: 10px;'/>"
-      );
-    },
-    copyIt2(title) {
-      return this.$addr + this.$imageDir + title + ".jpg";
-    },
+
     updateInfo(item) {
       this.curItem = item;
-      //      console.log(item.id);
+      console.log(item.id);
       //      this.show = false;
       this.dialog = true;
     },
-    processImage(func, title) {
+    processImage(func, title, img) {
       //      const changesSize = ["bigger", "smaller", "rotateR", "rotateL"];
       EventBus.$emit("wait", "true");
-      var url =
-        this.$pythonServer +
-        "/processImage?msg=" +
-        func +
-        "&id=" +
-        this.$imageDir +
-        "&filename=" +
-        encodeURIComponent(title);
 
+      var url =
+        this.$pythonServer + "/processImage?msg=" + func + "&filename=" + title;
       // alert(url);
       //      if (changesSize.indexOf(func) > -1) {
       //        this.dialog = false;
@@ -231,38 +188,28 @@ export default {
           var data = response.data;
           if (data.status > 200) {
             alert(data.statusText);
+            return;
           }
           var index = this.findIndexByKeyValue(this.imageList, "title", title);
-          if (index === -1) {
-            alert("Image not found in array " + title);
+          if (index == -1) {
+            alert("Image not found in array");
+            return -1;
           }
           if (func === "delete") {
             this.imageList.splice(index, 1);
-            for (var i = index; i < this.imageList.length; i++) {
-              this.imageList[i].id -= 1;
-            }
-            //'http://192.168.1.71/images/cal/20041025_004.jpg?cache=0.7576416406214024'
-            //'<img src='http://192.168.1.71/images/cal/20041025_004.jpg'>'
-            EventBus.$emit("wait", "false");
-            //            this.dialog = "false";
-            this.done();
           } else {
             //          var url ="<img src='" + this.$imagePath + title  + ".jpg>"
-            //            console.log("index: " + index + "Img : " + img);
+            console.log("Img : " + img);
             //            this.imageList[index]["img"] = this.$imagePath + title + ".jpg ";
-            this.imageList[index].img =
-              "<img src='" + this.$addr + this.$imageDir + title + ".jpg' >";
-            this.imageList[index].img2 =
-              this.$addr +
-              this.$imageDir +
-              title +
-              ".jpg?cache=" +
-              Math.random();
-            this.imageList[index].width = data.width;
-            this.imageList[index].height = data.height;
-            EventBus.$emit("wait", "false");
-            //            if (changesSize.indexOf(func) > -1) {
 
+            this.imageList[index]["img2"] =
+              this.$imagePath + title + ".jpg?cache=" + Math.random();
+            this.imageList[index]["width"] = data.width;
+            this.imageList[index]["height"] = data.height;
+            //            if (changesSize.indexOf(func) > -1) {
+            this.dialog = false;
+            this.dialog = true;
+            EventBus.$emit("wait", "false");
             //            }
           }
         })
@@ -270,64 +217,52 @@ export default {
           alert(error);
         });
     },
-    changeColor() {
-      this.inputColor = "grey darken-1";
-    },
-    renameImage(x, y) {
-      //      var oldName = x;
-      //      var newName = y;
+    renameImage(oldName, newName) {
       var url =
         this.$pythonServer +
-        "/renamefile?id=images/cal/" +
-        "&filename=" +
-        encodeURIComponent(x) +
+        "/renamefile?filename=" +
+        encodeURIComponent(oldName) +
         "&msg=" +
-        encodeURIComponent(y);
+        encodeURIComponent(newName);
       // alert(url);
       axios({
         method: "GET",
         url: url,
       })
-        .then((results) => {
-          var index = this.findIndexByKeyValue(this.imageList, "oldName", x);
-          if (index === -1) {
-            alert("Image not found in array " + x);
-          }
-          this.inputColor = "orange darken-4";
-          this.imageList[index].title = results.data;
-          this.imageList[index].oldName = results.data;
-          this.done();
+        .then(() => {
+          this.setTitle(newName);
           //          this.dialog = false;
           //          this.show = true;
+
           // alert(this.response);
         })
         .catch((error) => {
           alert(error);
         });
     },
-    getPictures(imageList) {
-      EventBus.$emit("wait", "true");
-      var url = this.$pythonServer + "/getPictures?id=" + this.$imageDir;
+
+    getPics(imageList) {
+      var url = this.$pythonServer + "getImageList?id=" + this.$imagePath;
       axios({
         method: "GET",
         url: url,
         //      url: this.$pythonServer +
         // url: "https://test.ebcrides.org/" + "getImageList",
+        headers: {},
       })
         // axios({ method: "GET", "url": "https://httpbin.org/ip" }).
         .then((response) => {
           var images = [];
           images = response.data;
           for (var i = 0; i < images.length; i++) {
-            var img =
-              this.$addr + this.$imageDir + encodeURIComponent(images[i].title);
-            images[i].img = "<img src='" + img + ".jpg'>";
+            var img = this.$imagePath + images[i].title + ".jpg";
 
-            images[i].img2 = img + ".jpg?cache=" + Math.random();
-            // console.log(images[i].title);
+            images[i]["img"] = "<img src='" + img + "'>";
+            images[i]["img2"] = img + "?cache=" + Math.random();
+            console.log(img);
             imageList.push(images[i]);
-            console.log(this.pp(images[i]));
           }
+
           EventBus.$emit("wait", "false");
         })
         .catch((error) => {
@@ -335,6 +270,7 @@ export default {
           alert(error);
         });
     },
+
     setTitle(newName) {
       var i = 0;
       while (i < this.imageList.length) {
@@ -345,43 +281,32 @@ export default {
         i += 1;
       }
     },
+
     handleUpload() {
+      //   this.fileName = e.name;
       EventBus.$emit("wait", "true");
       this.file = this.$refs.file.files[0];
       var fileName = this.file.name;
       var formData = new FormData();
+
       formData.append("file", this.file);
-      // console.log(img + " " + title);
-      //      var url = this.$pythonServer + "upload/upload.php";
-      //  var url = this.$pythonServer + "upload/upload.php";
-      var url = this.$addr + "upload/upload.php";
+      var url = this.$fileServer + "upload/upload.php";
       axios
         .post(url, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         })
-        .then((dim) => {
-          var size = dim.data.split(",");
+        .then(() => {
           var fileCount = this.imageList.length;
-          var img = this.$addr + this.$imageDir + fileName;
-          var title = fileName.substr(0, fileName.lastIndexOf(".jpg"));
-          console.log("title: " + title);
-          console.log(size[0] + " s1 " + size[1]);
-          for (var i = 0; i < fileCount; i++) {
-            this.imageList[i].id += 1;
-          }
+          var img = this.$imagePath + fileName;
           this.imageList.unshift({
-            id: 0,
-            img: "<img src='" + img + "'>",
+            id: fileCount,
+            img: "<img src='" + img + "' > ",
             img2: img + "?cache=" + Math.random(),
-            title: title,
-            oldName: title,
-            width: size[0],
-            height: size[1],
+            title: fileName.split(".")[0],
+            oldName: fileName.split(".")[0],
           });
-          var x = this.imageList[0];
-          console.log(x);
           EventBus.$emit("wait", "false");
         })
         .catch((error) => {
@@ -391,46 +316,36 @@ export default {
     },
   },
   mounted() {
-    this.getPictures(this.imageList);
+    EventBus.$emit("wait", "true");
+    this.getPics(this.imageList);
     this.fgColor = this.$fgColor;
   },
 };
 </script>
-
 <style>
-.popup {
-  border: black 20px;
-}
-
-.image {
-  /*  width: 0.1px;
-    height: 0.1px;
-    */
-  position: absolute;
-  opacity: 00;
-  z-index: 1;
-}
-.image2 {
-  opacity: 100;
-  color: transparent;
-  z-index: 1;
-}
-.btnx {
-  opacity: 100;
+.inputfile {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
   position: absolute;
   z-index: -1;
 }
-.uploadBtn {
-  /*  width: 0.1px;
-    height: 0.1px;
-    */
+.inputfile2 {
   position: absolute;
-  opacity: 00;
-  background-color: red;
-  min-height: 40px;
+  opacity: 0;
   z-index: 1;
 }
-.v-list.v-sheet.theme--light {
-  background-color: #ffba7a;
+.inputfile + label {
+  font-size: 1em;
+  font-weight: 400;
+  color: white;
+  background-color: transparent;
+  display: inline-block;
+  margin: 0.2em;
+}
+
+.v-sheet.v-list {
+  background: rgb(77, 155, 245);
 }
 </style>

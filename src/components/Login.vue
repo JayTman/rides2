@@ -1,12 +1,11 @@
 <template>
-  <div id="Login">
+  <div id="logon">
     <v-container fluid>
       <v-dialog
         width="400px"
         persistent
         transition="dialog-bottom-transition"
-        v-model="this.showLogin"
-        show="this.show"
+        v-model="show"
       >
         <v-card class="elevation-10">
           <v-toolbar dark color="primary">
@@ -29,7 +28,7 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="primary" @click="logMeIn()">Login</v-btn>
+            <v-btn color="primary" @click="login()">Login</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -39,36 +38,34 @@
 
 <script>
 export default {
+  name: "Logon",
+
   data() {
     return {
-      x: true,
-      name: "Login",
-      showLogin: true,
+      show: false,
+      itmes: [],
       item: [],
     };
   },
+  props: {
+    //    drawer: Boolean,
+  },
+
   methods: {
-    logMeIn() {
-      this.dialog = false;
+    login() {
+      alert("login init " + this.show);
       this.$router.push({ path: "/" });
+      this.show = false;
     },
     password() {
       alert("passwd");
     },
   },
-  mounted() {},
+  created() {
+    //    alert("moumred init " + this.$init);
+    this.itmes = this.createSummary();
+  },
 };
 </script>
 
-<style scoped>
-/* 
-.v-overlay__scrim {
-  background: url(https:/ebcrides.org/images/cal/loginBackground.jpg) no-repeat
-    center center fixed;
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
-  -o-background-size: cover;
-  background-size: cover;
-}
- */
-</style>
+<style></style>

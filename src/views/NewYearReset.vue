@@ -1,144 +1,112 @@
 <template>
   <div id="NewYearReset">
-    <v-card :color="this.$headerColor" height="100">
-      <v-row justify="center">
-        <h1>New Year Reset</h1>
+    <v-container fluid :class="this.$bgColor">
+      <v-row class="text-center">
+        <v-col>
+          <v-card :color="this.$headerColor">
+            <h2>Reset the Calender for the New Year</h2>
+            <h3>
+              This will archive rides from {{ this.$prevYear }} and set the
+              rides for {{ this.$currentYear }} to unconfirmed.
+            </h3>
+          </v-card>
+        </v-col>
       </v-row>
-    </v-card>
-    <v-card :color="this.$headerColor">
-      <div v-if="prevResetDate.substr(0, 4) !== currentYear.toString()">
-        <v-row justify="center">
-          <v-card-title>
-            This will archive the rides from
-            {{ prevYear }}, and set all the rides for {{ currentYear }} to
-            Pending.
-          </v-card-title>
+
+      <v-card color="red darken-4" dark v-show="this.unconfirmed">
+        <v-row class="text-left">
+          <v-col>
+            <v-card-title> Prepare for New year </v-card-title>
+            <v-card-text>
+              You should only reset the calendar for the new year when there are
+              no rides marked Pending or Changes Pending for the current year.
+              The rides shown below should have been set to either Confirmed or
+              Canceled before the ride had occurred. <br />
+              To correct these, you can click on the arrow buttons to show the
+              rides that are still have the wrong status set, and then press the
+              edit button to correct them.
+              <br />
+              <br />
+              When you are done changing the status for all the rides, refresh
+              this page.
+            </v-card-text>
+          </v-col>
         </v-row>
-        <v-row justify="center">
-          <v-btn
-            @click="newYearReset()"
-            :class="snackbarColor"
-            height="100"
-            elevation="12"
+        <v-row justify="space-around">
+          <v-btn color="black" @click="newYearReset()">
+            Reset the Calendar without <br />
+            changing the Status of the Rides below</v-btn
           >
-            Reset the Calendar for use in {{ currentYear }}
+          <v-btn @click="reloadTestCalendar()" color="black">
+            Reload Test Calendar
           </v-btn>
         </v-row>
-        <v-row justify="center">
-          {{ snackbarText }}
-        </v-row>
-        <!-- 
-        <v-resetMsg v-model="resetMsg" width="500" overlay-color="red lighten-2">
-          <v-card color="green lighten-2">
-            <v-row justify="center">
-              <v-btn
-                @click="newYearReset()"
-                color="green"
-                dark
-                height="100"
-                elevation="12"
-              >
-                Reset the Calendar for use in {{ currentYear }}
-              </v-btn>
-              <v-row justify="center"> </v-row>
-              <v-card-actions>
-                <v-row justify="center">
-                  <v-btn class="yellow" snackbarText @click="resetMsg = false">
-                    OK
-                  </v-btn>
-                </v-row>
-              </v-card-actions>
-            </v-row>
-          </v-card>
-        </v-resetMsg>
- -->
-      </div>
-      <div v-else>
-        <v-row justify="center">
-          <v-card width="400" dark height="150" class="warning text-center">
-            <v-col>
-              <v-row justify="center">
-                <v-card-subtitle>
-                  <h2>
-                    The New Year reset has been run for this year on
-                    {{ prevResetDate.substr(5, 20) }}.<br />
-                  </h2>
-                  <br />
-                  You can only reset the rides calendar once per year.
-                  <br />
-                  {{ overRideMsg }}
-                </v-card-subtitle>
-              </v-row>
-            </v-col>
-          </v-card>
-        </v-row>
-      </div>
-      <v-snackbar
-        v-model="snackbar"
-        :timeout="this.timeout"
-        absolute
-        :color="snackbarColor"
-      >
-        {{ snackbarText }}
-
+      </v-card>
+      <v-spacer></v-spacer>
+      <v-snackbar v-model="snackBar" color="warning" centered light>
+        {{ msg }}
         <template v-slot:action="{ attrs }">
-          <v-btn
-            color="black"
-            :disabled="snackBtn"
-            snackbarText
-            v-bind="attrs"
-            @click="ack()"
-          >
-            OK
+          <v-btn class="grey" v-bind="attrs" @click="snackBar = false">
+            Close
           </v-btn>
         </template>
       </v-snackbar>
-      <v-card :color="this.$headerColor" height="30"> </v-card>
-      <v-col>
-        <v-row justify="center">
-          <v-btn @click="overrideLock()" color="red yellow--snackbarText" dark>
-            Override Lockout
-          </v-btn>
+      <v-card width="100%" :color="this.$bgColor" v-show="!this.unconfirmed">
+        <PopUp />
+        <statusTable />
+        <v-row>
+          <v-col cols="md-6">
+            <v-btn
+              v-show="!unconfirmed"
+              color="primary"
+              @click="newYearReset()"
+            >
+              Reset the Calendar
+            </v-btn>
+          </v-col>
+          <v-col>
+            <v-btn @click="reloadTestCalendar()" class="red" dark>
+              Reload Test Calendar
+            </v-btn>
+          </v-col>
         </v-row>
-      </v-col>
-    </v-card>
-
-    <StatusTable />
+      </v-card>
+      <v-row>
+        <v-col>
+          <confirm ref="confirm"></confirm>
+          <StatusTable />
+        </v-col>
+      </v-row>
+    </v-container>
   </div>
 </template>
 
 <script>
 import axios from "axios";
-// import PopUp from "@/components/PopUp.vue";
+import PopUp from "@/components/PopUp.vue";
+import Confirm from "@/components/Confirm.vue";
 import StatusTable from "@/components/StatusTable.vue";
 // import confirm from "@/components/Confirm.vue";
 // import ButtonTip from "@/components/ButtonTip.vue";
 import EventBus from "@/event-bus.js";
 
 export default {
-  name: "NewYearReset",
+  name: "RideStatus",
   components: {
     //    ButtonTip,
-    //         PopUp,
-    //    Confirm,
+    PopUp,
+    Confirm,
     StatusTable,
   },
   props: {},
 
   data() {
     return {
-      snackbarText: "",
-      overRideMsg: "",
-      timeout: -1,
-      snackBtn: true,
-      resetMsg: false,
-      snackbar: false,
-      snackbarColor: "green",
-      prevYear: "",
-      prevResetDate: "",
-      currentYear: "",
+      msg: "NO MESSAGE",
+      timeout: 0,
+      snackBar: false,
       showRefresh: false,
-      pending: false,
+      unconfirmed: false,
       summaryData: [],
       expanded: [],
       singleExpand: false,
@@ -146,12 +114,11 @@ export default {
       calendar: this.$calendar,
       rideLeaderList: ["jay"],
       rideList: [],
-      msg: "",
       status: "",
 
       headers: [
         {
-          Text: "Ride Leader",
+          text: "Ride Leader",
           align: "start",
           value: "rideLeader",
           width: "60",
@@ -160,208 +127,69 @@ export default {
     };
   },
   methods: {
-    ack() {
-      this.snackbar = "false";
-      //      this.$router.push({ path: "/" });
-      this.$router.push({ path: "/" });
+    async newYearReset() {
+      /*
+      if (
+        await !confirm.open("Delete", "Are you sure?", {
+          color: "red",
+        })
+      ) {
+        // yes
+        return;
+      }
+ */ EventBus.$emit("wait", "true");
+      //
+      //      this.getRides("all", "all", this.u2).then((resp) => {
+      var x = await this.updateYear("prevYear").then((resp) => {
+        console.log(resp + "********** last year done " + x);
+      });
+      x = await this.updateYear("currentYear").then((resp) => {
+        console.log(resp + "this year done **********" + x);
+      });
     },
-    overrideLock() {
-      this.updateResetFlag("WRITE", "2020 Reset by Override");
-      (this.overRideMsg = "Override has been set"),
-        (this.snackbarColor = "red  white--text");
-    },
-    updateResetFlag(mode, newYearDate) {
-      var url =
-        this.$pythonServer +
-        "/newYearCheck?filename=newYearCheck.msg&id=" +
-        mode +
-        "&msg=" +
-        newYearDate;
+
+    reloadTestCalendar() {
+      this.msg = "Hang On, this will take a couple of minutes";
+      this.$refs.confirm
+        .open("Reload Test Calendar", this.msg, { color: "red" })
+        .then(() => {});
+      EventBus.$emit("wait", "true");
+      var url = this.$pythonServer + "/reloadTestCalendar";
       axios({
         method: "GET",
         url: url,
-        //      url: this.$pythonServer +
-        // url: "https://test.ebcrides.org/" + "getImageList",
       })
-        // axios({ method: "GET", "url": "https://httpbin.org/ip" }).
-        .then((response) => {
-          console.log("dateeeee " + response.data);
-          this.prevResetDate = response.data;
-          if (this.prevResetDate.substr(0, 4) === this.getYear("current")) {
-            this.snackbarColor = "red lighten-3 black--text";
-          }
-        });
-    },
+        .then(() => {
+          this.msg = "Reload done";
+          EventBus.$emit("wait", "false");
+          this.$router.push({ path: "/" });
 
-    async newYearReset() {
-      this.snackbar = true;
-      this.prevYear = this.getYear("previous");
-      this.currentYear = this.getYear("current").toString();
-      if (this.prevResetDate.substr(0, 4) === this.currentYear.toString()) {
-        this.snackbarText = "already done";
-        return true;
-      } else {
-        this.snackbarText = "Resetting for the New Year";
-        var today = new Date();
-        var dt = today.toDateString();
-        var year = today.getFullYear().toString();
-        var resetDate = year + " " + dt;
-        console.log("at newyearreset " + year + " " + dt + resetDate);
-        EventBus.$emit("wait", "true");
-        //
-        //      this.getRides("all", "all", this.u2).then((resp) => {
-        await this.updateYear(this.prevYear).then((resp) => {
-          console.log(
-            resp + "********** last year done [" + this.prevYear + "]"
-          );
+          // alert(this.response);
+        })
+        .catch((error) => {
+          alert(error);
+          EventBus.$emit("wait", "false");
+          this.snackBar = false;
         });
-        await this.updateYear(this.currentYear).then((resp) => {
-          console.log(
-            resp + "this year done ********** [" + this.currentYear + "]"
-          );
-        });
-      }
     },
 
     async updateYear(year) {
-      this.getConfig();
       let rideList = [];
-      //            this.currentYear = this.getYear("current");
-      //            this.prevYear = this.getYear("previous");
-      //            rideList.none = "none";
-
+      rideList["none"] = "none";
       var startDate = "";
       var endDate = "";
-      if (year === this.prevYear) {
-        startDate = this.prevYear + "-1-1";
-        endDate = this.prevYear + "-12-31";
+      if (year === "prevYear") {
+        startDate = this.$prevYear + "-1-1";
+        endDate = this.$prevYear + "-12-31";
       } else {
-        startDate = this.currentYear + "-1-1";
-        endDate = this.currentYear + "-12-31";
+        startDate = this.$currentYear + "-1-1";
+        endDate = this.$currentYear + "-12-31";
       }
-      console.log(
-        "RESET NEW YEAR year pased in " + year + "prev year is " + this.prevYear
-      );
 
-      await this.getRides("all", "all", null, startDate, endDate).then(
-        (resp) => {
-          rideList = resp;
-          return new Promise((resolve) => {
-            if (rideList.length === 0) {
-              return;
-            }
-            var APIkey =
-              "ca3fec0bc53190c90863e0f41579e27cbc98a57a97c909455df7db816f4ae4bd";
-            const axiosConfig = {
-              headers: {
-                "Teamup-Token": APIkey,
-                "Content-type": "application/json; charset=UTF-8",
-              },
-            };
-
-            const url = "https://api.teamup.com/" + this.$calendar + "/events/";
-            const promises = [];
-            const promises2 = [];
-            for (let j = 0; j < rideList.length; j++) {
-              if (rideList[j].rrule.search("WEEK") !== -1) {
-                console.log("ERROR checking for WEEK " + rideList[j]);
-                continue;
-              }
-              if (rideList[j].title.search("Club Meet") !== -1) {
-                console.log("ERROR CHECKING FOF MEETING" + rideList[j]);
-                continue;
-              }
-              promises.push(axios.get(url + rideList[j].id, axiosConfig));
-            }
-
-            Promise.all(promises).then((resp) => {
-              const statusID = this.statusFieldID;
-              const pend = this.getStatusID("pend");
-              for (let j = 0; j < resp.length; j++) {
-                const ride = resp[j].data.event;
-
-                if (year === this.prevYear) {
-                  ride.redit = "single";
-                } else {
-                  ride.redit = "all";
-                  ride.custom[statusID][0] = pend;
-                }
-                promises2.push(axios.put(url + ride.id, ride, axiosConfig));
-              }
-              Promise.all(promises2).then(() => {
-                //                for (let j = 0; j < resp.length; j++) {
-                //                  const ride = resp[j].data.event;
-                //   console.log(ride.Date + " " + ride.title);
-                //                }
-              });
-              console.log("update reset flag");
-              var today = new Date();
-              var resetDate =
-                today.getFullYear().toString() + " " + today.toDateString();
-              this.updateResetFlag("WRITE", resetDate);
-              this.snackbarText = "New Year Reset completed.";
-              this.snackbar = true;
-              this.snackBtn = false;
-              resolve(resp);
-              //            if (this.snadkbar === false) this.$router.push({ path: "/" });
-            });
-          }).catch((err) => {
-            console.log("ERROR update year:" + err);
-          });
-        }
-      );
-    },
-  },
-
-  /*     newYearReset() {
-      this.snackbar = true;
-      this.prevYear = this.getYear("previous");
-      this.currentYear = this.getYear("current").toString();
-      if (this.prevResetDate.substr(0, 4) === this.currentYear.toString()) {
-        this.snackbarText = "already done";
-        return true;
-      } else {
-        this.snackbarText = "Resetting for the New Year";
-        EventBus.$emit("wait", "true");
-        //
-        //      this.getRides("all", "all", this.u2).then((resp) => {
-        console.log("********** prev year started [" + this.prevYear + "]");
-        this.updateYear(this.prevYear).then((resp) => {
-          console.log(
-            resp + "********** prev year done [" + this.prevYear + "]"
-          );
-        });
-        console.log("********** theis year started [" + this.currentYear + "]");
-        this.updateYear(this.currentYear).then((resp) => {
-          console.log(
-            resp + "this year done ********** [" + this.currentYear + "]"
-          );
-        });
-      }
-    },
-
-    async updateYear(year) {
-      this.getConfig();
-      let rideList = [];
-      //            this.currentYear = this.getYear("current");
-      //            this.prevYear = this.getYear("previous");
-      //            rideList.none = "none";
-
-      var startDate = "";
-      var endDate = "";
-      if (year === this.prevYear) {
-        startDate = this.prevYear + "-1-1";
-        endDate = this.prevYear + "-12-31";
-      } else {
-        startDate = this.currentYear + "-1-1";
-        endDate = this.currentYear + "-12-31";
-      }
-      console.log(
-        "RESET NEW YEAR year pased in " + year + "prev year is " + this.prevYear
-      );
-
-      var results = await this.getRides("all", "all", null, startDate, endDate)
+      await this.getRides("all", "all", null, startDate, endDate)
         .then((resp) => {
+          rideList = resp;
+
           rideList = resp;
           var APIkey =
             "ca3fec0bc53190c90863e0f41579e27cbc98a57a97c909455df7db816f4ae4bd";
@@ -371,71 +199,59 @@ export default {
               "Content-type": "application/json; charset=UTF-8",
             },
           };
+
           const url = "https://api.teamup.com/" + this.$calendar + "/events/";
           const promises = [];
           const promises2 = [];
-            if (results === 0) {
-        console.log("no rides found for " + year);
-      for (let j = 0; j < rideList.length; j++) {
-        if (rideList[j].rrule.search("WEEK") !== -1) {
-          console.log("ERROR checking for WEEK " + rideList[j]);
-          continue;
-        }
-        if (rideList[j].title.search("Club Meet") !== -1) {
-          console.log("ERROR" + rideList[j]);
-          continue;
-        }
-        promises.push(axios.get(url + rideList[j].id, axiosConfig));
-      }
-      Promise.all(promises)
-        .then((resp) => {
-          const statusID = this.statusFieldID;
-          const pend = this.getStatusID("pend");
-          for (let j = 0; j < resp.length; j++) {
-            const ride = resp[j].data.event;
-
-            if (year === this.prevYear) {
-              ride.redit = "single";
-            } else {
-              ride.redit = "all";
-              ride.custom[statusID][0] = pend;
+          for (let j = 0; j < rideList.length; j++) {
+            if (rideList[j].rrule.search("WEEK") !== -1) {
+              console.log("ERROR" + rideList[j]);
+              continue;
             }
-            promises2.push(axios.put(url + ride.id, ride, axiosConfig));
-            if (ride.custom[statusID][0] !== pend)
-              console.log("pending not set " + this.pp(ride));
+            if (rideList[j].title.search("Club Meet") !== -1) {
+              console.log("ERROR" + rideList[j]);
+              continue;
+            }
+            promises.push(axios.get(url + rideList[j].id, axiosConfig));
           }
 
-          Promise.all(promises2).then(() => {
-          console.log("done promises 2");
-          console.log("update reset flag");
-          this.snackbarText = "New Year Reset completed.";
-          this.snackbar = true;
-          this.snackBtn = false;
-          var today = new Date();
-          var dt = today.toDateString();
-          var year = today.getFullYear().toString();
-          var resetDate = year + " " + dt;
-          this.updateResetFlag("WRITE", resetDate);
-          console.log("at newyearreset " + year + " " + dt + resetDate);
+          Promise.all(promises).then((resp) => {
+            const statusID = this.statusFieldID;
+            const pend = this.getStatusID("pend");
+            for (let j = 0; j < resp.length; j++) {
+              let ride = resp[j].data.event;
+              //              console.log(ride);
+
+              if (year === "prevYear") {
+                ride.redit = "single";
+              } else {
+                ride.redit = "all";
+                ride.custom[statusID][0] = pend;
+              }
+              promises2.push(axios.put(url + ride.id, ride, axiosConfig));
+            }
+            Promise.all(promises2);
+            if (year === "currentYear") {
+              //              var title = "Reset Completed";
+              //                 this.$refs.popup.open(title);
+              this.timout = 5000;
+              this.msg = "Reset Completed.";
+              this.snackBar = true;
+              this.$router.push({ path: "/" });
+            }
+          });
         })
-          if (this.snadkbar === false) this.$router.push({ path: "/" })
-      });
-        },
-    }),
- */ mounted() {
-    this.updateResetFlag("READ", "");
-    this.prevYear = this.getYear("previous");
-    this.currentYear = this.getYear("current");
-    EventBus.$on("pending", (value) => {
-      this.pending = value;
+        .catch((err) => {
+          console.log("ERRROR");
+
+          console.log(err);
+        });
+    },
+  },
+  mounted() {
+    EventBus.$on("unconfirmed", (value) => {
+      this.unconfirmed = value;
     });
   },
 };
 </script>
-<style scoped>
-.border {
-  padding: 300px;
-  padding-top: 20px;
-  padding-bottom: 10px;
-}
-</style>

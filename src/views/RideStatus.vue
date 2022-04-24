@@ -1,55 +1,39 @@
 <template>
   <div id="RideStatus">
-    <v-card :color="this.$bgColor">
-      <v-card :color="this.$headerColor">
+    <v-container fluid :class="this.$bgColor">
+      <v-card :color="this.$headerColor" height="240">
         <v-row justify="center">
           <h2>Ride Leader Email Messages</h2>
         </v-row>
-
-        <v-row justify="space-between">
-          <v-col cols="5">
+        <v-row>
+          <v-col>
             <v-row justify="center">
               <h3 class="font-weight-bold mb-3">
                 Send An Email to All Ride Leaders
               </h3>
             </v-row>
-            <!--             <v-card height="44" :class="this.$headerColor" flat> </v-card>
- -->
+            <v-card height="94" :class="this.$headerColor" flat> </v-card>
             <v-row justify="center">
-              <Tip
-                text="This will send a list of all rides to all ride leaders. </br> Typically you'd only do this once at the beginning of the year."
+              <v-btn
+                color="primary"
+                @click="emailMessage(allRideLeaders, 'all')"
               >
-                <slot>
-                  <v-btn
-                    color="primary"
-                    @click="emailMessage(allRideLeaders, 'all', 'newYear.msg')"
-                  >
-                    All Rides for <br />
-                    the New Year
-                  </v-btn>
-                </slot>
-              </Tip>
-              <Tip
-                text="This will send a list of pending rides ONLY to ride leaders who have pending rides. <br/> So if a ride leader has confirmed all of their rides,  then they won't see this email."
+                New Year Email
+              </v-btn>
+              <v-btn
+                color="primary"
+                @click="emailMessage(unconfirmedRideLeaders, 'unconfirmed')"
               >
-                <slot>
-                  <v-btn
-                    color="primary"
-                    @click="
-                      emailMessage(
-                        pendingRideLeaders,
-                        'pending',
-                        'pendingRides.msg'
-                      )
-                    "
-                  >
-                    pending Rides
-                  </v-btn>
-                </slot>
-              </Tip>
+                Unconfirmed Rides
+              </v-btn>
             </v-row>
           </v-col>
-          <v-col cols="4">
+          <v-col>
+            <v-row justify="center">
+              <h3 class="font-weight-bold mb-3">
+                Send an Email to single Ride Leader
+              </h3>
+            </v-row>
             <!-- 
               <v-select
                 :color="this.$headerColor"
@@ -60,98 +44,87 @@
               >
               </v-select>
  -->
-            <v-card color="transparent" height="170" flat>
-              <v-row>
-                <h3 class="font-weight-bold mb-3">
-                  Send an Email to single Ride Leader
-                </h3>
-              </v-row>
-              <v-row>
-                <v-card class="transparent" width="308" flat>
-                  <v-autocomplete
-                    auto-select-first
-                    v-model="rideLeader"
-                    label="Select
+            <v-card class="primary" width="350" dark>
+              <v-autocomplete
+                v-model="rideLeader"
+                label="Select
                   Name..."
-                    :items="allRideLeaders"
-                    @change="setRideLeaderName(rideLeader)"
-                    class="transparent"
-                  ></v-autocomplete>
-                </v-card>
-              </v-row>
-              <v-row justify="space-around">
-                <v-btn
-                  color="primary"
-                  @click="emailMessage(rideLeader, 'all', 'allRides.msg')"
-                  :disabled="rideLeader === '' ? true : false"
-                >
-                  All Rides
-                </v-btn>
-                <v-btn
-                  color="primary"
-                  @click="
-                    emailMessage(rideLeader, 'pending', 'pendingRides.msg')
-                  "
-                  :disabled="rideLeader === '' ? true : false"
-                >
-                  pending Rides
-                </v-btn>
-              </v-row>
+                :items="allRideLeaders"
+                @change="setRideLeaderName(rideLeader)"
+              ></v-autocomplete>
             </v-card>
+            <v-btn
+              color="primary"
+              @click="emailMessage(rideLeader, 'all')"
+              :disabled="rideLeader === '' ? true : false"
+            >
+              A List of All Rides
+            </v-btn>
+            <v-btn
+              color="primary"
+              @click="emailMessage(rideLeader, 'unconfirmed')"
+              :disabled="rideLeader === '' ? true : false"
+            >
+              Unconfirmed Rides
+            </v-btn>
           </v-col>
         </v-row>
       </v-card>
 
-      <confirm ref="confirm"></confirm>
-      <v-card :class="this.$bgColor" height="60">
+      <PopUp v-on:okay="msg('okay')" v-on:cancel="msg('cancel')" ref="popup">
+      </PopUp>
+      <v-card :class="this.$bgColor">
         <v-row justify="center">
-          <h2>Ride Status {{ this.getYear("current") }}</h2>
+          <h2>Ride Leader Status {{ this.$currentYear }}</h2>
+        </v-row>
+        <v-row>
+          <v-col>
+            <template>
+              <StatusTable />
+            </template>
+          </v-col>
         </v-row>
       </v-card>
-      <template>
-        <v-col>
-          <StatusTable />
-        </v-col>
-      </template>
-    </v-card>
+    </v-container>
   </div>
 </template>
 
 <script>
 import axios from "axios";
+// import Login from "@/components/Login.vue";
+import PopUp from "@/components/PopUp.vue";
 import StatusTable from "@/components/StatusTable.vue";
-import Confirm from "@/components/Confirm.vue";
-import Tip from "@/components/Tip.vue";
+// import ButtonTip from "@/components/ButtonTip.vue";
 import EventBus from "@/event-bus.js";
 
 export default {
   name: "RideStatus",
   components: {
-    Confirm,
-    Tip,
+    //    ButtonTip,
+    PopUp,
+    //    Login,
     StatusTable,
   },
   props: {},
 
   data() {
     return {
-      snackbar: true,
       showRefresh: false,
       summaryData: [],
       expanded: [],
       singleExpand: false,
       calendar: this.$calendar,
+      statusList: [],
       rideLeader: "",
       rideLeadersSelected: [],
-      pendingRideLeaders: [],
+      unconfirmedRideLeaders: [],
       allRideLeaders: [],
-      api: "",
       status: "",
 
       headers: [
         {
           text: "Ride Leader",
-          align: "end",
+          align: "start",
           value: "rideLeader",
           width: "60",
         },
@@ -165,9 +138,9 @@ export default {
       // alert(getFuncName() + ": " + error)this.rideLeader);
     },
 
-    emailMessage(name, status, messageFile) {
+    emailMessage(name, status) {
       this.status = status;
-      if (typeof name === "string") {
+      if (typeof name == "string") {
         this.rideLeadersSelected = [];
         this.rideLeadersSelected.push(name);
       } else {
@@ -177,32 +150,18 @@ export default {
       // alert("emailMessage " + name + " " + status);
       var title =
         "Emailing a list of " + this.status.toUpperCase() + " Rides to: ";
-      var agreeButtonText = "Send";
-      var msg = "";
-      if (name === "") msg = "All Ride Leaders";
-      else msg = name;
-      this.$refs.confirm
-        .open(title, msg, { agreeButtonText })
-        .then((confirm) => {
-          if (confirm === true) {
-            console.log("at msg");
-            this.msg("okay", messageFile);
-          }
-        });
-      //      this.$refs.popup.open(title, name);
+      this.$refs.popup.open(title, name);
       this.rideLeadersSelected = [];
       this.rideLeadersSelected = name;
       // message = message.slice(1);
     },
 
-    msg(res, msgFile = "") {
+    msg(res) {
       if (res === "okay") {
         var url =
           this.$pythonServer +
-          msgFile +
-          "?cal=" +
-          /*           "summaryMail?cal=" +
-           */ this.$calendar +
+          "summaryMail?cal=" +
+          this.$calendar +
           "&rideLeader=" +
           encodeURIComponent(this.rideLeadersSelected) +
           "&rideStatus=" +
@@ -215,7 +174,7 @@ export default {
         })
           //          .then(response => {
           .then(true)
-          //            alert(this.statusValues);
+          //            alert(this.statusList);
           //        })
           .catch((error) => {
             alert("summary email" + ": " + error);
@@ -232,31 +191,17 @@ export default {
     //      this.createSummary();
     //      this.showRefresh = true;
     //    });
-    this.api = process.env.VUE_APP_ROOT_API;
+
     EventBus.$emit("wait", "true");
-    /*
-     */
+    this.createSummary();
+    EventBus.$emit("wait", "false");
     EventBus.$on("allRideLeaders", (x) => {
       this.allRideLeaders = x;
-      EventBus.$emit("wait", "false");
     });
-    /*
-   EventBus.$on("pendingRideLeaders", (x) => {
-      this.pendingRideLeaders = x;
-      //      alert("setting pending" + this.pendingRideLeaders);
+    EventBus.$on("unconfirmedRideLeaders", (x) => {
+      this.unconfirmedRideLeaders = x;
+      //      alert("setting unconfirmed" + this.unconfirmedRideLeaders);
     });
- */
   },
 };
 </script>
-<style>
-.v-application {
-  line-height: "0.8";
-}
-v-sheet.list {
-  background: hsl(61, 85%, 78%);
-}
-.v-sheet.v-list {
-  color: rgb(230, 230, 159);
-}
-</style>

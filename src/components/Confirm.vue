@@ -1,46 +1,19 @@
 <template>
-  <v-dialog v-model="dialog" :width="options.width" persistent scrollable>
-    <v-card :class="this.$headerColor">
-      <!--   <v-toolbar :class="this.$headerColor" class="wrap-text">
-     -->
-      <v-card-title class="wrap-text black--text">
-        <!--         <v-toolbar-title class="white--text wrap-text">
- -->
-        {{ title }}
-        <!-- </v-toolbar-title>
- -->
-      </v-card-title>
-      <!--       </v-toolbar>
--->
-      <v-card-text
-        :class="this.$bgColor"
-        style="max-height: 200px"
-        class="wrap-text"
-      >
-        <h3>
-          {{ message }}
-        </h3>
-      </v-card-text>
-      <!--
+  <v-dialog
+    v-model="dialog"
+    :max-width="options.width"
+    :style="{ zIndex: options.zIndex }"
+    @keydown.esc="cancel"
+  >
+    <v-card>
+      <v-toolbar dark :color="options.color" dense flat>
+        <v-toolbar-title class="white--text">{{ title }}</v-toolbar-title>
+      </v-toolbar>
       <v-card-text v-show="!!message" class="pa-4">{{ message }}</v-card-text>
- -->
-
       <v-card-actions class="pt-0">
-        <v-col>
-          <v-row justify="space-between">
-            <v-btn class="green black--text" text @click.native="agree">{{
-              options.agreeButtonText
-            }}</v-btn>
-            <v-btn
-              class="red lighten-1 black--text"
-              color="black"
-              text
-              @click.native="cancel"
-            >
-              {{ options.cancelButtonText }}</v-btn
-            >
-          </v-row>
-        </v-col>
+        <v-spacer></v-spacer>
+        <v-btn color="primary darken-1" text @click.native="agree">Yes</v-btn>
+        <v-btn color="grey" text @click.native="cancel">Cancel</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -84,10 +57,8 @@ export default {
     title: null,
     options: {
       color: "primary",
-      width: 400,
+      width: 290,
       zIndex: 200,
-      agreeButtonText: "Yes",
-      cancelButtonText: "Cancel",
     },
   }),
   methods: {
@@ -103,7 +74,6 @@ export default {
     },
     agree() {
       this.resolve(true);
-
       this.dialog = false;
     },
     cancel() {

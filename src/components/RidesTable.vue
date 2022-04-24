@@ -1,163 +1,188 @@
 <template>
   <div id="ridesTable">
-    <v-card :color="this.$headerColor">
-      <v-row justify="center">
-        <div v-if="rideLeader === 'all'">
-          <Tip
-            text="The phrase you enter on the Filter line will filer across all the colums in the report below. <br/> You can sort on one or more columns by clicking on the column heading(s) you wan to be sorted."
-          >
-            <slot>
-              <v-text-field
-                v-model="search"
-                prefix=""
-                label="Search & filter rides"
-                prepend-icon="mdi-magnify"
-                single-line
-              ></v-text-field>
-            </slot>
-          </Tip>
-        </div>
+    <div v-if="rideLeader === 'all'">
+      <v-row>
+        <v-col cols="4">
+          <v-text-field
+            v-model="search"
+            prefix="Filter:"
+            label=""
+            prepend-icon="mdi-magnify"
+            single-line
+            width="25%"
+          ></v-text-field>
+        </v-col>
       </v-row>
-    </v-card>
-
-    <v-data-table
-      hide-default-footer
-      :hide-default-header="hideHeader === 'nohide' ? false : true"
-      dense
-      :height="windowSize.y"
-      single-expand
-      :fixed-header="hideHeader === 'nohide' ? true : false"
-      :class="this.$fgColor"
-      :headers="headers"
-      :items="ridesList"
-      :search="search"
-      :itemsPerPage="-1"
-    >
-      <!--       <template v-slot:header="{ props: { headers } }">
-        <thead>
-          <tr>
-            <th v-for="h in headers" :class="headerColor" :key="h.rideLeader">
-              <span>{{ h.text }}</span>
-            </th>
-          </tr>
-        </thead>
-      </template>
- -->
-      <template v-slot:item.edit="{ item }">
-        <v-btn class="primary" small @click="teamUpEdit(item.id)"> Edit </v-btn>
-      </template>
-      <template v-slot:item.tz="{ item }">
-        <v-chip :color="getColor(item[statusFieldName])">
-          <v-icon> mdi-bicycle </v-icon>
-        </v-chip>
-      </template>
-    </v-data-table>
+      <v-data-table
+        hide-details
+        sortable
+        multi-sort
+        :class="fgColor"
+        :headers="allHeaders"
+        :items="this.rideList"
+        :items-per-page="100"
+        fixed-header
+      >
+        <template v-slot:item.edit="{ item }">
+          <v-btn class="primary" small @click="teamUpEdit(item.id)">
+            Edit
+          </v-btn>
+        </template>
+        <template v-slot:item.tz="{ item }">
+          <div :key="statusFieldName">
+            <v-chip :color="getColor(item[statusFieldName])" small>
+              {{ item[statusFieldName] }}
+            </v-chip>
+          </div>
+        </template>
+      </v-data-table>
+    </div>
+    <div v-else>
+      <v-data-table
+        hide-details
+        hide-default-header
+        hide-default-footer
+        dense
+        :class="fgColor"
+        :headers="allHeaders"
+        :items="this.rideList"
+        :items-per-page="100"
+        height="230px"
+      >
+        >
+        <template v-slot:item.edit="{ item }">
+          <v-btn class="primary" small @click="teamUpEdit(item.id)">
+            Edit
+          </v-btn>
+        </template>
+        <template v-slot:item.tz="{ item }">
+          <div :key="statusFieldName">
+            <v-chip small :class="getColor(item[statusFieldName])">
+              {{ item[statusFieldName] }}
+            </v-chip>
+          </div>
+        </template>
+      </v-data-table>
+    </div>
   </div>
 </template>
 <script>
 // import axios from "axios";
-import Tip from "@/components/Tip";
 import EventBus from "@/event-bus";
 
 export default {
-  components: {
-    Tip,
-  },
-  name: "RidesTable",
+  name: "ridesTable",
+  fgColor: "primary",
   props: {
+    status: {
+      Type: String,
+    },
     rideLeader: {
-      Type: String,
-    },
-    rideStatus: {
-      Type: String,
-    },
-    ridesList: {
-      Type: Array,
-    },
-    statusFieldN: {
-      Type: String,
-    },
-    hideHeader: {
       Type: String,
     },
   },
   data() {
     return {
-      windowSize: {
-        x: 0,
-        y: 0,
-      },
+      rides: [],
       fgColor: "this.$fgColor",
       hidden: null,
       search: "",
       //      customHeaders: [],
       headers: [
-        { text: "", value: "edit" },
-        { text: "Ride Leader", align: "end", value: "who" },
-        { text: "Date", value: "Date" },
+        { text: "Ride Leader", align: "start", value: "who" },
+        { text: "Date", value: "Date", width: "8" },
         { text: "Name", value: "title" },
-        { text: "", value: "tz", sortable: false },
+        { text: "Status", value: "tz" },
       ],
     };
   },
 
   methods: {
-    onResize(rideLeader) {
-      console.log("rideleader" + rideLeader);
-      if (rideLeader === "all")
-        this.windowSize = {
-          x: window.innerWidth,
-          y: window.innerHeight - 200,
-        };
-      else this.windowSize = { x: window.innerWidth, y: "" };
-    },
-    getColor(Status2) {
-      if (Status2.toLowerCase().search("confirm") > -1) {
-        return "green";
-      } else if (Status2.toLowerCase().search("cancel") > -1) {
-        return "pink lighten-1";
-      } else if (Status2.toLowerCase().search("leader") > -1) {
-        return "pink darken-1 ";
-      } else if (Status2.toLowerCase().search("change") > -1) {
-        return "dee-purple accent-2";
-      } else if (Status2.toLowerCase().search("pend") > -1) {
-        return "brown lighten-3 ";
+    getColor(Status) {
+      if (Status.toLowerCase().search("confirm") > -1) {
+        return "green lighten-3";
+      } else if (Status.toLowerCase().search("cancel") > -1) {
+        return "orange ligten-3";
+      } else if (Status.toLowerCase().search("change") > -1) {
+        return "blue lighten-4";
+      } else if (Status.toLowerCase().search("pend") > -1) {
+        return "red lighten-3";
       }
       //      else if (Status.lower.match(/sun/g) > -1) return "red";
       //      else if (Status.lower.match(/wed/g) > -1) return "green";
       else return "grey";
     },
     teamUpEdit(rideID) {
+      const win = window.open("about:blank");
       EventBus.$emit("showRefresh", "true");
-      var url = "https://teamup.com/" + this.$calendar + "/events/" + rideID;
-      const win = window.open(url);
+      var url =
+        "https://teamup.com/" + this.$calendar + "/events/" + rideID + "";
+      //    oalert("oen");
+      //  this.teamup = url;
       win.location = url;
-      EventBus.$emit("showRefresh", "false");
     },
-
-    async init() {
-      EventBus.$emit("wait", "true");
-      var ret = await this.getRides("all", "pending").then(() => {});
-      if (ret === 0) {
-        return;
+  },
+  computed: {
+    allHeaders() {
+      var h = [{ text: "", value: "edit" }];
+      return h.concat(this.headers.concat(this.customHeaders));
+    },
+    rideStatus() {
+      return this.statusFieldName;
+    },
+    rideList() {
+      var rd = [];
+      var confirm = this.getStatusID("confirm");
+      console.log(this.rideLeader);
+      for (var cnt = 0; cnt < this.rides.length; cnt++) {
+        if (this.rideLeader !== "all") {
+          if (this.rides[cnt].who !== this.rideLeader) {
+            continue;
+          }
+        }
+        console.log("id " + this.statusFieldID);
+        console.log("status " + this.status);
+        if (this.status !== "all") {
+          if (this.rides[cnt]["custom"][this.statusFieldID][0] === confirm) {
+            continue;
+          }
+        }
+        rd.push(this.rides[cnt]);
       }
-      this.headers.push({
-        text: this.statusFieldName,
-        value: this.statusFieldName,
-        align: "start",
-      });
+      return rd;
+    },
+    freq() {
+      return this.item.rule.slice(5, 10);
     },
   },
-
   mounted() {
-    this.init();
-    this.onResize(this.rideLeader);
+    this.getRides("all", "all").then((response) => {
+      this.rides = response;
+      this.fgColor = this.$fgColor;
+    });
   },
+
+  //    var x = this.rides.pop();
+  //    alert("rideTable" + x);
+  //    this.rides.push(x);
+  /*   var rides = [];
+//     console.log("mounted");
+    rides = this.getRides(this.status, this.rideLeader);
+    //    var x = this.rideListst.pop();
+    //    this.rideList.push(x);
+    //   var rides = [];
+    for (var cnt = 0; cnt < rides.length; cnt++) {
+      if (rides[cnt].rrule.search("YEAR") === -1) {
+        continue;
+      }
+      //      this.rides.push(this.rideList[cnt]);
+    }
+    console.log("rides " + rides);
+  },*/
 };
 </script>
 <style scoped>
-.v-data-table-header {
-  color: lawngreen;
-  background-color: lightpink;
+*body {
+  background-color: #0c030a;
 }
 </style>

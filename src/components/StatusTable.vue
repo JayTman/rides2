@@ -1,36 +1,28 @@
 <template>
   <div id="statusTable">
-    <v-data-table
-      fixed-header
-      v-show="pending"
-      show-expand
-      :height="windowSize.y"
-      hide-default-footer
-      expand-icon="mdi-menu-open --color blue -lighten-4 white--text"
-      :headers="headers"
-      item-key="rideLeader"
-      contextmenu=""
-      single-expand
-      :itemsPerPage="-1"
-      :items="summaryData"
-      :class="this.$bgColor"
-      @click:row="(item, slot) => slot.expand(!slot.isExpanded)"
-      @item-expanded="newRL($event['item'])"
-    >
-      <template v-slot:expanded-item="{ item }">
-        <td :colspan="headers.length">
-          <v-container>
-            <RidesTable
-              :rideLeader="item.rideLeader"
-              rideStatus="pending"
-              :ridesList="rideLeaderList"
-              :statusFieldN="statusFieldName"
-              hideHeader="hide"
-            />
-          </v-container>
-        </td>
-      </template>
-    </v-data-table>
+    <v-container fluid>
+      Status: {{ this.statusFieldName }}
+      <v-data-table
+        v-show="unconfirmed"
+        show-expand
+        expand-icon="mdi-arrow-down-bold"
+        :single-expand="true"
+        :headers="headers"
+        :itemsPerPage="100"
+        item-key="rideLeader"
+        footer-props.items-per-page-options="50"
+        :items="summaryData"
+        :class="this.$bgColor"
+      >
+        <template v-slot:expanded-item="{ item }">
+          <td :colspan="headers.length + 1">
+            <v-card>
+              <RidesTable :rideLeader="item.rideLeader" status="unconfirmed" />
+            </v-card>
+          </td>
+        </template>
+      </v-data-table>
+    </v-container>
   </div>
 </template>
 
@@ -51,90 +43,69 @@ export default {
       showRefresh: false,
       showNewYear: true,
       summaryData: [],
-      //      expanded: [],
+      expanded: [],
       rideList: [],
       singleExpand: false,
       rideLeader: "",
       calendar: this.$calendar,
       status: "",
-      itemExpanded: null,
       newRides: [],
       rideLeaderList: [],
-      headerColor: this.$fgColor,
-      windowSize: {
-        x: 0,
-        y: 0,
-      },
 
       headers: [
         {
           text: "RIDE LEADER",
           align: "start",
           value: "rideLeader",
-          width: "55",
+          width: "15",
         },
       ],
-      pending: true,
+      unconfirmed: null,
     };
   },
 
   methods: {
-    onResize() {
-      this.windowSize = {
-        x: window.innerWidth,
-        y: window.innerHeight - 350,
-      };
-    },
-    async newRL(it) {
-      await this.getRides(it.rideLeader, "pending").then((resp) => {
-        EventBus.$emit("wait", "false");
-        this.rideLeaderList = resp;
-      });
-    },
-
     async createSummary() {
       var summaryData = [];
-      var rd = [];
-      EventBus.$emit("wait", "true");
-      await this.getRides("all", "pending").then((resp) => {
-        rd = resp;
+
+      await this.getRides("all", "unconfirmed").then((resp) => {
+        this.rideList = resp;
+        EventBus.$emit("wait", "false");
       });
-      this.rideList = rd;
-      this.getstatusValues();
+      this.createStatusList();
       var confirm = this.getStatusID("confirm");
 
-      for (var i = 0; i < this.statusValues.length; i++) {
+      for (var i = 0; i < this.statusList.length; i++) {
+        if (this.statusList[i][0] === confirm) {
+          continue;
+        }
         this.headers.push({
-          text: this.statusValues[i][1],
-          value: this.statusValues[i][0],
-          width: 5,
+          text: this.statusList[i][1],
+          value: this.statusList[i][0],
+          width: 10,
         });
       }
-      var keys = Object.values(this.statusValues);
+      var keys = Object.values(this.statusList);
       for (var cnt = 0; cnt < this.rideList.length; cnt++) {
         var ride = this.rideList[cnt];
-        if (ride.who === "") {
+        if (ride["who"] === "") {
           continue;
         }
         var rideLeaderIndex = this.findIndexByKey(
           summaryData,
           "rideLeader",
-          ride.who
+          ride["who"]
         );
 
         // ride leader not in list
         if (rideLeaderIndex === -1) {
-          //          this.pending = true;
-          if (ride.status === confirm) {
-            continue;
-          }
-          summaryData.push({
-            rideLeader: ride.who,
-          });
+          this.unconfirmed = true;
+          EventBus.$emit("unconfirmed", "true");
+          summaryData.push({ rideLeader: ride["who"] });
           rideLeaderIndex = this.findIndexByKey(
             summaryData,
             "rideLeader",
-            ride.who
+            ride["who"]
           );
           if (rideLeaderIndex === -1) {
             return "ERROR";
@@ -147,43 +118,16 @@ export default {
         //          if (this.headers.includes(status) === false) {
         //            this.headers.push(status);
         //        }
-        var val = ride.custom[this.statusFieldID][0];
+        var val = ride["custom"][this.statusFieldID][0];
         summaryData[rideLeaderIndex][val] += 1;
       }
       this.summaryData = summaryData;
+      //      this.$emit("okay");
     },
-    // results are loop through list of ride leaders
-    /*       for (i = 0; i < summaryData.length; i++) {
-        for (var j = 0; j < this.statusValues.length; j++) {
-          if (this.statusValues[j][0] === confirm) {
-            continue;
-          }
-           on
-          if (summaryData[i][this.statusValues[j][0]] > 0) {
-            this.summaryData.push(summaryData[i]);
-            break;
-          }
-        }
-      }
- */ //      this.$emit("okay");
   },
   mounted() {
     EventBus.$emit("wait", "true");
     this.createSummary();
-    this.onResize();
   },
 };
 </script>
-<style>
-.foo {
-  justify-items: end;
-  justify-content: end;
-  text-align-last: left;
-  font-size: 11px;
-  line-height: 24px;
-  font-weight: inherit;
-}
-.cols {
-  width: 30;
-}
-</style>

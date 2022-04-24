@@ -8,14 +8,13 @@ import RideStatus from "../views/RideStatus.vue";
 import RideLeaders from "../views/RideLeaders.vue";
 import Login from "../components/Login.vue";
 import List from "../views/List.vue";
-import About from "../views/About.vue";
 Vue.use(VueRouter);
 
 const routes = [
   {
-    path: "/Login/:dialog/",
+    path: "/Login/",
     name: "Login",
-    props: true,
+    props: false,
     component: Login,
   },
   {
@@ -54,18 +53,12 @@ const routes = [
     name: "List",
     props: false,
     component: List,
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    //    component: () =>
+    //      import(/* webpackChunkName: "about" */ "../views///List.vue"),
   },
-  {
-    path: "/About",
-    name: "About",
-    props: false,
-    component: About,
-  },
-  // route level code-splitting
-  // this generates a separate chunk (about.[hash].js) for this route
-  // which is lazy-loaded when the route is visited.
-  //    component: () =>
-  //      import(/* webpackChunkName: "about" */ "../views///List.vue"),
 
   {
     path: "/msgEditor/:filename/:title/",

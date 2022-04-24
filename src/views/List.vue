@@ -1,21 +1,11 @@
 <template>
   <div id="List">
-    <v-card :color="this.$headerColor">
-      <v-row justify="center" align="center">
-        <h2 class="display-1 font-weight-bold mb-3">Rides List</h2>
+    <v-container fluid :class="this.$bgColor">
+      <v-row justify="center">
+        <h2 class="display-1 font-weight-bold mb-3">Ride List</h2>
       </v-row>
-    </v-card>
-    <v-card :color="this.$bgColor">
-      <template>
-        <RidesTable
-          rideLeader="all"
-          ridesStatus="all"
-          :ridesList="this.ridesList"
-          :statusFieldN="this.statusFieldName"
-          hideHeader="nohide"
-        />
-      </template>
-    </v-card>
+      <RidesTable :rideLeader="this.rideLeader" status="all" />
+    </v-container>
   </div>
 </template>
 
@@ -25,7 +15,7 @@ import RidesTable from "@/components/RidesTable";
 export default {
   // import EventBus from "@/event-bus";
 
-  // import clickMixin from "@/mixins"
+  //import clickMixin from "@/mixins"
   name: "List",
   // mixins: [clickMixin],
   components: {
@@ -36,33 +26,9 @@ export default {
     return {
       rideLeader: "all",
       status: "all",
-      ridesList: [],
     };
   },
 
-  methods: {
-    async init(rideLeader, rideStatus) {
-      var x = await this.getRides(
-        rideLeader,
-        rideStatus,
-        null,
-        "1/1/" + this.getYear("current"),
-        "12/1/" + this.getYear("current")
-      ).then((response) => {
-        this.ridesList = response;
-        this.fgColor = this.$fgColor;
-        if (rideStatus === "all") {
-          this.allHeaders = [{ text: "Calendar", value: "edit" }];
-          this.hideHeader = null;
-          // this.allHeaders.concat(this.headers.concat(this.customHeaders));
-        }
-        console.log(x);
-      });
-    },
-  },
-
-  mounted() {
-    this.init("all", "all");
-  },
+  methods: {},
 };
 </script>

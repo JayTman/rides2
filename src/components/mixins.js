@@ -94,6 +94,7 @@ if (theme === "original") {
   Vue.prototype.$bgColor = "primary lighten-4";
   Vue.prototype.$fgColor = "primary lighten-3";
 }
+Vue.prototype.$subClendars = [];
 
 export default {
   data() {
@@ -107,7 +108,6 @@ export default {
       allRideLeaders: [],
       pendingRideLeaders: [],
       statusValues: [],
-      subClendars: [],
     };
   },
   methods: {
@@ -250,7 +250,6 @@ export default {
     },
     getStatusID(name) {
       this.getstatusValues();
-      this.getstatusValues();
       for (var i = 0; i < this.statusValues.length; i++) {
         var x = this.fuzzyMatch(this.statusValues[i][1], name);
         if (x === true) {
@@ -313,7 +312,7 @@ export default {
       ride.displayCustom = this.sortObj(ride.displayCustom);
     },
 
-    async getConfig() {
+    getConfig() {
       return new Promise((resolve, reject) => {
         var APIkey =
           "ca3fec0bc53190c90863e0f41579e27cbc98a57a97c909455df7db816f4ae4bd";
@@ -342,8 +341,7 @@ export default {
             },
           })
             .then((responseCal) => {
-              this.subCalendars = responseCal.data.subcalendars;
-              resolve(this.subCalendars);
+              this.$subCalendars = responseCal.data.subcalendars;
             })
 
             .catch((error) => {
@@ -353,16 +351,21 @@ export default {
               return false;
             });
         });
+        resolve(this.$subCalendars);
       });
     },
 
     getYear(whichYear) {
+      //      await this.getConfig();
       var today = new Date();
       var month = today.getMonth();
       var year = today.getFullYear();
+
       if (month > 1) {
         year += 1;
       }
+      //      console.log("sub cals " + this.$subCalendars.length)
+
       var currentYear = year;
       year -= 1;
       var prevYear = year;
@@ -371,8 +374,8 @@ export default {
       else return "error";
     },
 
-    async getRides(rideLeader, status, func = null, start = "", end = "") {
-      await this.getConfig();
+    getRides(rideLeader, status, func = null, start = "", end = "") {
+      this.getConfig();
       return new Promise((resolve, reject) => {
         const rideList = [];
         const skip = [];
@@ -384,17 +387,17 @@ export default {
         }
         console.log(
           "start: " +
-          start +
-          " end: " +
-          end +
-          " rideLeader " +
-          rideLeader +
-          " status: " +
-          status +
-          "dates passed in: " +
-          passed +
-          "calendar " +
-          this.$calendar
+            start +
+            " end: " +
+            end +
+            " rideLeader " +
+            rideLeader +
+            " status: " +
+            status +
+            "dates passed in: " +
+            passed +
+            "calendar " +
+            this.$calendar
         );
 
         EventBus.$emit("wait", "true");
@@ -446,17 +449,19 @@ export default {
               }
 
               var sub = this.findNameByKey(
-                this.subCalendars,
+                this.$subCalendars,
                 "id",
                 ride.subcalendar_id
               );
               if (this.fuzzyMatch(sub, "meet")) {
                 ride.reason = "meeting";
                 skip.push(ride);
+                console.log("skipping meeting based on subcalendar");
                 continue;
               }
               if (ride.title.toLowerCase().search("club") !== -1) {
                 ride.reason = "meeting";
+                console.log("skipping meeting based on title");
                 skip.push(ride);
                 continue;
               }
@@ -499,7 +504,9 @@ export default {
               console.log(rd.reason);
             }
             if (rideList.length === 0) {
-              console.log("Found no ride data for " + start + " thru " + end + ".");
+              console.log(
+                "Found no ride data for " + start + " thru " + end + "."
+              );
               resolve(rideList);
             }
             if (func !== null) {
